@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Horizon Tab",
+  "version": "1.14.0",
+  "description": "A minimal, beautiful, customizable new tab page \u2014 your horizon, your way.",
+  "chrome_url_overrides": {
+    "newtab": "tab.html"
+  },
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://grok.com/*",
+    "https://www.perplexity.ai/*"
+  ],
+  "host_permissions": [
+    "*://safebrowsing.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "aiscan/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.google.com/search*",
+        "*://*.duckduckgo.com/*",
+        "*://search.brave.com/search*"
+      ],
+      "js": [
+        "aiscan/score.js",
+        "aiscan/content.js"
+      ],
+      "css": [
+        "aiscan/badge.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "horizon-tab@rishvanthamsaraj",
+      "strict_min_version": "128.0"
+    }
+  }
+}

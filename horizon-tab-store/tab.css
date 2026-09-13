@@ -1,0 +1,680 @@
+/* ════════════════════════════════════════════════
+   Horizon Tab — tab.css  v2.0
+   ════════════════════════════════════════════════ */
+
+/* ── Reset */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+/* ── Motion easings — physics-based, with bouncy spring for interactive
+     elements and a smooth ease for ambient transitions. Apple uses the
+     smooth curve globally; we pair them so taps feel alive without
+     making the page feel jittery.
+     spring : overshoots ~6% — gives a subtle "settle" when something
+              snaps to its target (taps, selection flips).
+     smooth : standard Apple curve for state changes that should glide
+              (drawer open/close, panel slides). */
+:root{
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --ease-smooth:cubic-bezier(.32,.72,.24,1);
+}
+
+/* ── Theme variables */
+:root,html[data-theme="slate"],html[data-theme="darkbg"] {
+  --bg:#0d0d0d; --bg2:#141418;
+  --text:#E8EBED; --text-dim:#8a929a; --text-muted:#5a626a;
+  --surface-opacity:0.04; --surface-hover-rgba:rgba(255,255,255,0.08);
+  --surface-active-rgba:rgba(255,255,255,0.12);
+  --surface:rgba(255,255,255,var(--surface-opacity));
+  --border:rgba(255,255,255,0.05); --border-strong:rgba(255,255,255,0.10);
+  --accent:#7a8a9a; --accent-glow:rgba(122,138,154,0.20);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(122,138,154,0.05); --glow-b:rgba(60,70,80,0.08);
+  --r:14px; --rs:10px; --blur:20px;
+  --shadow:0 6px 24px rgba(0,0,0,0.20);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.25);
+}
+html[data-theme="ivory"] {
+  --bg:#f3f1ed; --bg2:#3a3631;
+  --text:#ffffff; --text-dim:#c9c0b0; --text-muted:#8f8778;
+  --surface-opacity:0.02; --surface-hover-rgba:rgba(0,0,0,0.05);
+  --surface-active-rgba:rgba(0,0,0,0.08);
+  --surface:rgba(0,0,0,var(--surface-opacity));
+  --border:rgba(0,0,0,0.05); --border-strong:rgba(0,0,0,0.10);
+  --accent:#606060; --accent-glow:rgba(0,0,0,0.08);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(0,0,0,0.02); --glow-b:rgba(0,0,0,0.04);
+  --shadow:0 6px 24px rgba(0,0,0,0.06);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.10);
+}
+html[data-theme="lightbg"] {
+  --bg:#f3f1ed; --bg2:#e8e5df;
+  --text:#1e1e1e; --text-dim:#6a6a6a; --text-muted:#9a9a9a;
+  --surface-opacity:0.02; --surface-hover-rgba:rgba(0,0,0,0.05);
+  --surface-active-rgba:rgba(0,0,0,0.08);
+  --surface:rgba(0,0,0,var(--surface-opacity));
+  --border:rgba(0,0,0,0.05); --border-strong:rgba(0,0,0,0.10);
+  --accent:#606060; --accent-glow:rgba(0,0,0,0.08);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(0,0,0,0.02); --glow-b:rgba(0,0,0,0.04);
+  --shadow:0 6px 24px rgba(0,0,0,0.06);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.10);
+}
+html[data-theme="navy"] {
+  --bg:#001E44; --bg2:#081830;
+  --text:#E8EDF2; --text-dim:#8a9aae; --text-muted:#5a6a7e;
+  --surface-opacity:0.04; --surface-hover-rgba:rgba(255,255,255,0.08);
+  --surface-active-rgba:rgba(255,255,255,0.12);
+  --surface:rgba(255,255,255,var(--surface-opacity));
+  --border:rgba(255,255,255,0.05); --border-strong:rgba(255,255,255,0.10);
+  --accent:#B8D4F0; --accent-glow:rgba(184,212,240,0.20);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(184,212,240,0.08); --glow-b:rgba(30,78,140,0.12);
+  --shadow:0 6px 24px rgba(0,0,0,0.30);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.35);
+}
+html[data-theme="modern"] {
+  --bg:#0d0d0d; --bg2:#281c42;
+  --text:#ffffff; --text-dim:#b0a090; --text-muted:#706050;
+  --surface-opacity:0.04; --surface-hover-rgba:rgba(255,255,255,0.08);
+  --surface-active-rgba:rgba(255,255,255,0.12);
+  --surface:rgba(255,255,255,var(--surface-opacity));
+  --border:rgba(255,255,255,0.05); --border-strong:rgba(255,255,255,0.10);
+  --accent:#ff6200; --accent-glow:rgba(255,98,0,0.22);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(255,98,0,0.06); --glow-b:rgba(200,80,0,0.10);
+  --shadow:0 6px 24px rgba(0,0,0,0.25);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.35);
+}
+html[data-theme="modern-day"] {
+  --bg:#f8f6f0; --bg2:#2e224c;
+  --text:#ffffff; --text-dim:#c9b9a8; --text-muted:#8f857a;
+  --surface-opacity:0.02; --surface-hover-rgba:rgba(0,0,0,0.05);
+  --surface-active-rgba:rgba(0,0,0,0.08);
+  --surface:rgba(0,0,0,var(--surface-opacity));
+  --border:rgba(0,0,0,0.05); --border-strong:rgba(0,0,0,0.10);
+  --accent:#ff6200; --accent-glow:rgba(255,98,0,0.14);
+  --hero-text:var(--text); --hero-sub:var(--text-dim);
+  --glow-a:rgba(255,98,0,0.04); --glow-b:rgba(200,80,0,0.03);
+  --shadow:0 6px 24px rgba(0,0,0,0.06);
+  --shadow-hover:0 8px 32px rgba(0,0,0,0.10);
+}
+html[data-theme="custom"] {
+  --bg:var(--user-bg,#0d0d0d); --bg2:var(--user-bg2,#141418);
+  --text:var(--user-text,#E8EBED); --text-dim:var(--user-text-dim,#8a929a); --text-muted:var(--user-text-muted,#5a626a);
+  --surface-opacity:0.04; --surface:rgba(255,255,255,var(--surface-opacity));
+  --surface-hover-rgba:rgba(255,255,255,0.08); --surface-active-rgba:rgba(255,255,255,0.12);
+  --border:rgba(255,255,255,0.05); --border-strong:rgba(255,255,255,0.10);
+  --accent:var(--user-accent,#7a8a9a); --accent-glow:var(--user-accent-glow,rgba(122,138,154,0.20));
+  --hero-text:var(--user-hero-text,var(--text)); --hero-sub:var(--user-hero-sub,var(--text-dim));
+  --glow-a:rgba(255,255,255,0.05); --glow-b:rgba(255,255,255,0.08);
+  --shadow:0 6px 24px rgba(0,0,0,0.25); --shadow-hover:0 8px 32px rgba(0,0,0,0.30);
+}
+html[data-theme="custom"][data-custom-mode="light"] {
+  --text:#1e1e1e; --text-dim:#606060; --text-muted:#909090;
+  --surface-opacity:0.02; --surface:rgba(0,0,0,var(--surface-opacity));
+  --surface-hover-rgba:rgba(0,0,0,0.05); --surface-active-rgba:rgba(0,0,0,0.08);
+  --border:rgba(0,0,0,0.05); --border-strong:rgba(0,0,0,0.10);
+  --hero-text:var(--user-hero-text,var(--text)); --hero-sub:var(--user-hero-sub,var(--text-dim));
+  --glow-a:rgba(0,0,0,0.02); --glow-b:rgba(0,0,0,0.04);
+  --shadow:0 6px 24px rgba(0,0,0,0.06); --shadow-hover:0 8px 32px rgba(0,0,0,0.10);
+}
+html[data-theme="darkbg"].has-bg{--hero-text:#F0F2F4;--hero-sub:#C0C6CC;--text:#E0E4E8;--text-dim:#a0a8b0}
+html[data-theme="lightbg"].has-bg{--hero-text:#111111;--hero-sub:#404040;--text:#1a1a1a;--text-dim:#505050}
+
+/* ── Base */
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+  transition:background .7s cubic-bezier(.4,0,.2,1),color .5s;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Background layer */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 85% 50% at 50% -12%,var(--glow-a) 0%,transparent 65%),
+             radial-gradient(ellipse 45% 35% at 18% 82%,var(--glow-b) 0%,transparent 55%),
+             radial-gradient(ellipse 35% 40% at 82% 95%,var(--glow-a) 0%,transparent 55%);
+  transition:background 1s cubic-bezier(.4,0,.2,1);
+}
+/* no `fixed` attachment: .bg-layer is already position:fixed, so it
+   bought nothing and cost a full-viewport repaint path */
+.bg-layer.has-image{background:var(--user-bg) center/cover no-repeat}
+/* Overlay + blur are both user-controlled now. Blur defaults to 0 so an
+   uploaded image keeps its full detail; the veil is only as strong as
+   the contrast math says it needs to be (see autoDim in tab.js). */
+.bg-layer.has-image::after{content:'';position:fixed;inset:0;z-index:0;background:var(--overlay-c,transparent);pointer-events:none;transition:background .35s var(--ease-smooth)}
+/* Only pay for the blur pass when there IS a blur: backdrop-filter:blur(0)
+   still promotes a layer and runs a full-viewport filter that changes
+   nothing, and blur is off by default. */
+.bg-layer.has-image.has-blur::after{backdrop-filter:blur(var(--bg-blur,0px));-webkit-backdrop-filter:blur(var(--bg-blur,0px))}
+
+/* ── Ambient background (animated gradient orbs) ──
+   Three soft, slow-drifting gradient orbs replace the single flat accent
+   orb. Each is a multi-stop radial gradient (color → transparent) with
+   no filter:blur — the falloff IS the gradient — so the drift stays
+   cheap: a translate3d on a composited layer, never a re-rasterized
+   blur, and never a scale() of a blurred layer. */
+.ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.ambient .orb{position:absolute;border-radius:50%;opacity:var(--orb-o,.65);will-change:transform}
+.ambient .orb-a{width:72vmax;height:72vmax;left:-20vmax;top:-24vmax;
+  background:radial-gradient(circle at 35% 35%,var(--orb-a,#7a8a9a) 0%,color-mix(in srgb,var(--orb-a,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-a,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-a 38s ease-in-out infinite alternate}
+.ambient .orb-b{width:58vmax;height:58vmax;right:-16vmax;top:-8vmax;
+  background:radial-gradient(circle at 40% 40%,var(--orb-b,#7a8a9a) 0%,color-mix(in srgb,var(--orb-b,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-b,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-b 46s ease-in-out infinite alternate}
+.ambient .orb-c{width:76vmax;height:76vmax;left:18vmax;bottom:-30vmax;
+  background:radial-gradient(circle at 45% 45%,var(--orb-c,#7a8a9a) 0%,color-mix(in srgb,var(--orb-c,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-c,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-c 54s ease-in-out infinite alternate}
+@keyframes drift-a{from{transform:translate3d(0,0,0)}to{transform:translate3d(13vmax,8vmax,0)}}
+@keyframes drift-b{from{transform:translate3d(0,0,0)}to{transform:translate3d(-10vmax,11vmax,0)}}
+@keyframes drift-c{from{transform:translate3d(0,0,0)}to{transform:translate3d(-8vmax,-7vmax,0)}}
+
+/* ── Container */
+.container{--hero-gap:.85rem;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:2rem;width:100%;max-width:640px;animation:fadeIn .55s var(--ease-smooth) both;gap:1.5rem}
+/* Container justify shifts based on drawer state — default centered content */
+.container{justify-content:center;min-height:100dvh}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Hero
+   One rhythm for the whole stack: greeting↔time↔date share --hero-gap
+   via flex gap (margins zeroed), and the weather pill below is pulled
+   into the same rhythm (see .weather). text-box trims the 5rem clock's
+   font leading in Chromium so the measured gap IS the visual gap;
+   Firefox ignores it gracefully. */
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--hero-gap,.85rem)}
+.hero .greeting{font-size:.82rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--hero-sub);opacity:.6;margin:0;animation:fadeUp .6s .05s both;transition:color .5s}
+.hero .time{font-size:5rem;font-weight:260;letter-spacing:-.02em;line-height:1;text-box:trim-both cap alphabetic;margin:0;font-variant-numeric:tabular-nums;color:var(--hero-text);animation:fadeUp .6s .1s both;transition:color .5s,text-shadow .4s}
+.hero .time:hover{text-shadow:0 0 40px var(--accent-glow)}
+.hero .date{font-size:.82rem;font-weight:400;letter-spacing:.05em;margin:0;animation:fadeUp .6s .15s both;color:var(--hero-sub);opacity:.7;transition:color .5s}
+
+/* ── Weather */
+.weather{margin-top:calc(var(--hero-gap,.85rem) - 1.5rem); /* container gap is 1.5rem; net date↔weather distance = --hero-gap, matching the hero rhythm */
+  display:flex;align-items:center;gap:.45rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.4rem .95rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);animation:fadeUp .6s .2s both}
+.weather:hover{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--accent-glow)}
+.weather-icon{font-size:1.1rem;line-height:1}
+.weather-temp{font-size:.9rem;font-weight:600;color:var(--text)}
+.weather-desc{opacity:.75}
+.weather-hilo{opacity:.5;font-size:.7rem}
+.weather-hilo::before{content:"·";margin-right:.35rem;opacity:.4}
+
+/* ══════════════════════════════════════════════════
+   SEARCH SECTION — premium animated expand
+   ══════════════════════════════════════════════════ */
+.search-section{position:relative;width:100%;display:grid;grid-template-rows:auto 0fr;row-gap:0;animation:fadeUp .7s .25s both;z-index:2;transition:grid-template-rows .55s var(--ease-smooth)}
+
+/* ── Search row ── */
+.search-row{position:relative;display:flex;align-items:center;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);
+  transition:border-radius .5s var(--ease-spring),border-color .35s var(--ease-smooth),box-shadow .5s var(--ease-smooth),background .5s var(--ease-smooth);
+  z-index:2}
+.search-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow),0 0 24px var(--accent-glow)}
+
+/* Mode tag — the chip on the left of the search input that shows the
+   active engine / AI provider. Two states:
+
+   (default)  — full chip with icon + label (e.g. "[icon] Google")
+   .compact   — icon-only, slimmer. Triggered when the user has typed
+                something; the label collapses with a smooth width +
+                opacity transition instead of vanishing outright.
+
+   The chip stays interactive in BOTH states — clicking it always
+   opens the drawer so the user can switch engines. */
+.mode-tag{
+  flex-shrink:0;
+  display:inline-flex;align-items:center;gap:.3rem;
+  max-width:160px;                   /* room for the label */
+  padding:.06rem .45rem;
+  margin-left:.7rem;
+  border-radius:5px;
+  background:var(--surface-active-rgba);
+  color:var(--accent);
+  font-size:.72rem;font-weight:500;
+  line-height:1.6;white-space:nowrap;
+  cursor:pointer;
+  overflow:hidden;                   /* clip the collapsing label */
+  transition:
+    max-width .35s var(--ease-spring),
+    padding   .35s var(--ease-spring),
+    background-color .25s var(--ease-smooth),
+    color .25s var(--ease-smooth);
+}
+.mode-tag:hover{background-color:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.mode-tag svg{
+  width:12px;height:12px;flex-shrink:0;display:block;
+}
+/* The label sits in its own span so we can collapse it independently
+   (translate it out + fade) without affecting the icon position. */
+.mode-tag .mode-label{
+  display:inline-block;
+  opacity:1;
+  transform:translateX(0);
+  transition:opacity .25s var(--ease-smooth), transform .25s var(--ease-smooth), max-width .35s var(--ease-spring);
+  max-width:140px;
+  overflow:hidden;text-overflow:ellipsis;
+}
+
+/* Compact state: icon-only, tight padding, label clipped out. */
+.mode-tag.compact{
+  max-width:24px;
+  padding:.06rem .25rem;
+}
+.mode-tag.compact .mode-label{
+  opacity:0;
+  transform:translateX(-6px);
+  max-width:0;
+}
+
+#searchInput{flex:1;padding:.85rem .7rem;font-size:.92rem;font-family:inherit;background:transparent;border:none;color:var(--text);outline:none;min-width:0}
+#searchInput::placeholder{color:var(--text-dim);opacity:.45}
+
+.search-arrow{flex-shrink:0;font-size:.45rem;color:var(--text-muted);margin-right:.85rem;transition:transform .55s var(--ease-spring);opacity:.45;pointer-events:none}
+.search-section.open .search-arrow{transform:rotate(180deg)}
+
+/* ── Search body — GPU-composited scaleY ── */
+.search-body{display:flex;flex-direction:column;opacity:0;overflow:hidden;min-height:0;contain:layout paint;
+  transition:opacity .4s var(--ease-smooth) .1s;
+}
+.search-section.open{grid-template-rows:auto 1fr}.search-section.open .search-body{opacity:1}
+
+
+/* ── Layout push for links ── */
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;width:100%;max-width:500px;margin:0;padding:0;animation:fadeUp .6s .3s both;position:relative;z-index:1}
+
+/* ── Drawer — transparent inner strip. The parent
+   .search-section.open owns the chrome (border + bg + shadow
+   + focus glow). Drawer only carries its own spacing. ── */
+.search-drawer{
+  position:relative;
+  padding:.1rem .65rem .55rem;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  transform:translateY(-6px);
+  transition:transform .5s var(--ease-spring) .05s;
+}
+.search-section.open .search-drawer{transform:translateY(0)}
+
+
+/* ── Drawer tab bar ──
+     Tab active state matches drawer-btn / filter-chip active state —
+     same translucent fill, same accent border, same glow ring. The
+     only difference is the rounded pill radius. Keeps the visual
+     language consistent across all "selected" surfaces in the drawer. */
+.drawer-tabbar{display:flex;justify-content:center;gap:.4rem;padding:.45rem 0 .35rem}
+.drawer-tab{
+  padding:.3rem .8rem;border-radius:100px;border:1px solid transparent;
+  background:transparent;color:var(--text-dim);font-size:.66rem;font-weight:500;
+  font-family:inherit;cursor:pointer;
+  transition:background-color .28s var(--ease-smooth),border-color .28s var(--ease-smooth),color .28s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .28s var(--ease-smooth);
+}
+.drawer-tab:hover{color:var(--text);background:var(--surface-hover-rgba);border-color:var(--border-strong);transform:translateY(-1px)}
+.drawer-tab.active{
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  color:var(--text);border-color:var(--accent);font-weight:600;
+  box-shadow:0 0 0 1px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* ── Drawer grid ──
+     Two layouts:
+       - .ai-grid  : 4 on top, 2 on bottom centered to middle 2.
+                     (6 options — perplexity/grok/gemini/chatgpt/claude/deepseek)
+                     Implemented via grid-template-columns:repeat(4,1fr) and
+                     the last two items get grid-column:2 / span 1.
+       - default   : auto-fill columns for the 8 web search engines. */
+.drawer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:.35rem;padding:.15rem 0;justify-items:stretch}
+/* AI grid — flex-wrap centering so the last short row stays centered at
+   ANY count (6 built-ins today, more once the user adds custom ones).
+   The old nth-child centering only worked for a fixed 6 at a fixed
+   column width; flex centering works for any count at any breakpoint. */
+.drawer-grid.ai-grid{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
+}
+.drawer-grid.ai-grid .drawer-btn{
+  flex:1 1 108px;
+  max-width:calc(25% - .2625rem);   /* 4 per row */
+}
+@media (max-width:520px){
+  .drawer-grid.ai-grid .drawer-btn{
+    flex-basis:88px;
+    max-width:calc(33.333% - .2334rem);  /* 3 per row */
+  }
+}
+
+.drawer-btn{
+  display:flex;align-items:center;gap:.35rem;padding:.4rem .55rem;
+  border-radius:7px;border:1px solid transparent;background:transparent;
+  color:var(--text-dim);font-size:.72rem;font-family:inherit;cursor:pointer;
+  text-align:left;
+  transition:background-color .28s var(--ease-smooth),border-color .28s var(--ease-smooth),color .28s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .28s var(--ease-smooth);
+}
+.drawer-btn:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
+.drawer-btn.active{
+  border-color:var(--accent);color:var(--text);
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  box-shadow:0 0 0 1px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.06);
+  font-weight:600;
+}
+.drawer-btn .db-svg{flex-shrink:0;width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:transform .28s var(--ease-spring)}
+.drawer-btn .db-svg svg{width:14px;height:14px;display:block}
+.drawer-btn:hover .db-svg{transform:scale(1.08)}
+.drawer-btn .db-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer-btn .db-tag{font-size:.54rem;opacity:.3;white-space:nowrap}
+
+/* ── Drawer footer (filters + hint) ── */
+.drawer-footer{padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s .1s var(--ease-smooth),opacity .25s .15s var(--ease-smooth),padding .3s .1s var(--ease-smooth)}
+.search-section.open .drawer-footer{max-height:80px;padding:.15rem 0 0;opacity:1}
+
+.filter-bar{display:flex;justify-content:center;gap:.3rem;flex-wrap:wrap;padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s .18s var(--ease-smooth),padding .25s .18s var(--ease-smooth),opacity .25s .22s var(--ease-smooth)}
+.filter-bar.visible{max-height:88px;padding:.1rem 0 0;opacity:1}
+.filter-chip{
+  display:flex;align-items:center;gap:.25rem;padding:.2rem .55rem;
+  border-radius:100px;border:1px solid var(--border);background:var(--surface);
+  color:var(--text-muted);font-size:.64rem;cursor:pointer;font-family:inherit;
+  line-height:1.4;
+  transition:background-color .28s var(--ease-smooth),border-color .28s var(--ease-smooth),color .28s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .28s var(--ease-smooth);
+}
+.filter-chip.active{
+  /* Same translucent-fill language as the tab + provider button so
+     "active" reads as one concept across the drawer. */
+  border-color:var(--accent);color:var(--text);
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  box-shadow:0 0 0 1px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.05);
+  font-weight:500;
+}
+.filter-chip:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
+.filter-chip.aifree{color:var(--text-muted)}
+.filter-chip.aifree.active{color:#22c55e;border-color:#22c55e;background:color-mix(in srgb,#22c55e 12%,var(--surface));box-shadow:0 0 0 1px rgba(34,197,94,0.3),inset 0 1px 0 rgba(255,255,255,.05);font-weight:500}
+.filter-chip.aifree:hover:not(.active){color:#22c55e;border-color:#22c55e}
+
+.ai-hint{font-size:.6rem;color:var(--text-muted);text-align:center;margin:0;padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .25s .2s var(--ease-smooth),padding .2s .2s var(--ease-smooth),opacity .2s .22s var(--ease-smooth)}
+.search-section.open .ai-hint.active{max-height:30px;padding:.2rem 0 0;opacity:1}
+
+
+.link-item{display:flex;flex-direction:column;align-items:center;gap:.3rem;text-decoration:none;color:var(--text-dim);font-size:.7rem;padding:.6rem .85rem;border-radius:var(--rs);background:var(--surface);border:1px solid transparent;min-width:68px;transition:background-color .25s var(--ease-smooth),border-color .35s var(--ease-smooth),color .25s var(--ease-smooth),transform .35s var(--ease-spring),box-shadow .35s var(--ease-smooth)}
+.link-item:hover{background:var(--surface-hover-rgba);border-color:var(--border-strong);color:var(--text);transform:translateY(-4px) scale(1.02);box-shadow:var(--shadow-hover),0 0 0 1px var(--accent-glow)}
+.link-item:focus-visible{outline:none;box-shadow:0 0 0 2px var(--accent)}
+.link-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;transition:transform .3s var(--ease-spring);overflow:hidden;position:relative}
+.link-icon::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);pointer-events:none}
+.link-icon img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.link-item:hover .link-icon{transform:scale(1.1)}
+.link-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68px;font-weight:500}
+
+/* ── Settings toggle */
+.settings-toggle{position:fixed;bottom:24px;right:24px;width:40px;height:40px;z-index:10;border-radius:50%;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));color:var(--text-dim);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background-color .3s var(--ease-smooth),border-color .3s var(--ease-smooth),color .3s var(--ease-smooth),transform .4s var(--ease-spring),box-shadow .3s var(--ease-smooth);animation:fadeUp .6s .35s both}
+.settings-toggle svg{width:18px;height:18px;display:block}
+.settings-toggle:hover{background:var(--surface-hover-rgba);border-color:var(--accent);color:var(--text);transform:scale(1.08);box-shadow:0 0 0 1px var(--accent-glow),0 4px 12px var(--accent-glow)}
+
+/* ── Settings panel */
+.settings-backdrop{position:fixed;inset:0;z-index:98;background:rgba(0,0,0,0.45);opacity:0;pointer-events:none;transition:opacity .35s var(--ease-smooth)}
+.settings-backdrop.open{opacity:1;pointer-events:all;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.settings-panel{position:fixed;top:0;right:0;width:400px;max-width:90vw;height:100%;background:var(--bg2);border-left:1px solid var(--border-strong);z-index:99;overflow-y:auto;
+  transform:translateX(calc(100% + 24px));will-change:transform;visibility:hidden;contain:layout paint;
+  transition:transform .55s var(--ease-spring),visibility 0s .55s}
+.settings-panel.open{transform:translateX(0);visibility:visible;transition:transform .55s var(--ease-spring),visibility 0s}
+.settings-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.25rem .5rem;border-bottom:1px solid var(--border)}
+.settings-header h2{font-size:.95rem;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.settings-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background-color .25s var(--ease-smooth),border-color .25s var(--ease-smooth),color .25s var(--ease-smooth),transform .3s var(--ease-spring),box-shadow .25s var(--ease-smooth)}
+.settings-close:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+.settings-body{padding:.9rem 1.25rem 2rem;display:flex;flex-direction:column;gap:1.1rem}
+.settings-group{display:flex;flex-direction:column;gap:.4rem}
+.settings-label{font-size:.75rem;font-weight:600;color:var(--text);text-transform:uppercase;letter-spacing:.06em}
+.settings-hint{font-size:.72rem;color:var(--text-dim);margin-top:-.2rem}
+
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.theme-btn,.engine-btn,.upload-btn{display:flex;align-items:center;gap:.45rem;padding:.45rem .7rem;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.75rem;font-family:inherit;cursor:pointer;transition:background-color .2s var(--ease-smooth),border-color .2s var(--ease-smooth),color .2s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .2s var(--ease-smooth);text-align:left;width:100%}
+.theme-btn:hover,.engine-btn:hover,.upload-btn:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
+.theme-btn.active,.engine-btn.active{
+  /* Same active treatment as the drawer tabs / buttons / chips. */
+  border-color:var(--accent);color:var(--text);
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  box-shadow:0 0 0 1px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.05);
+  font-weight:600;
+}
+.theme-swatch{width:24px;height:24px;border-radius:4px;display:block;flex-shrink:0}
+
+.color-pickers{display:flex;gap:.5rem;margin-top:.25rem}
+.color-pick-group{flex:1;display:flex;flex-direction:column;gap:.2rem}
+.color-pick-group label{font-size:.68rem;color:var(--text-muted)}
+.color-input{width:100%;height:36px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);cursor:pointer;padding:2px;-webkit-appearance:none;appearance:none}
+.color-input::-webkit-color-swatch-wrapper{padding:2px}
+.color-input::-webkit-color-swatch{border:1px solid var(--border-strong);border-radius:6px}
+.color-input::-moz-color-swatch{border:1px solid var(--border-strong);border-radius:6px}
+
+.glass-slider-row{display:flex;align-items:center;gap:.6rem;padding:.25rem 0}
+.glass-slider-row span{font-size:.72rem;color:var(--text-dim);white-space:nowrap}
+.glass-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--border-strong);outline:none;cursor:pointer;transition:background .2s}
+.glass-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg2);cursor:pointer;box-shadow:0 0 0 1px var(--accent-glow);transition:transform .25s var(--ease-spring)}
+.glass-slider::-webkit-slider-thumb:hover{transform:scale(1.15)}
+.glass-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--bg2);cursor:pointer}
+
+.custom-links{display:flex;flex-direction:column;gap:.35rem}
+.link-editor{display:flex;align-items:center;gap:.3rem;padding:.45rem;border-radius:var(--rs);background:var(--surface);border:1px solid var(--border);transition:border-color .25s var(--ease-smooth)}
+.link-editor:focus-within{border-color:var(--border-strong)}
+.link-editor input{flex:1;background:transparent;border:none;color:var(--text);font-size:.75rem;font-family:inherit;outline:none;min-width:0}
+.link-editor input::placeholder{color:var(--text-dim);opacity:.4}
+.link-editor .le-emoji{max-width:28px;text-align:center;font-size:.95rem}
+.link-editor .le-img{flex:.55;font-size:.65rem}
+.link-remove{width:22px;height:22px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);font-size:.7rem;cursor:pointer;transition:background-color .2s var(--ease-smooth),color .2s var(--ease-smooth);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.link-remove:hover{background:rgba(255,60,60,.12);color:#ff5a5a}
+.btn-sm{padding:.4rem .8rem;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.75rem;font-family:inherit;font-weight:500;cursor:pointer;transition:background-color .2s var(--ease-smooth),border-color .2s var(--ease-smooth),color .2s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .2s var(--ease-smooth);align-self:flex-start}
+.btn-sm:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);box-shadow:0 0 12px var(--accent-glow);transform:translateY(-1px)}
+
+/* ── Responsive */
+@media(max-width:480px){
+  .hero .time{font-size:2.8rem}
+  .links{gap:.4rem}
+  .weather{font-size:.72rem;padding:.3rem .75rem}
+  .container{padding:1.25rem}
+  .theme-grid{grid-template-columns:1fr}
+  .drawer-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AI Signal — methodology modal
+   ══════════════════════════════════════════════════════════════════ */
+.ai-methodology{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s var(--ease-smooth);
+}
+.ai-methodology.open{opacity:1;pointer-events:auto}
+.ai-methodology-card{
+  background:var(--bg2);
+  border:1px solid var(--border-strong);
+  border-radius:var(--r);
+  width:100%;max-width:540px;max-height:80vh;overflow-y:auto;
+  padding:1.1rem 1.3rem 1.3rem;
+  box-shadow:var(--shadow-hover);
+  transform:translateY(8px) scale(.98);
+  transition:transform .35s var(--ease-spring);
+}
+.ai-methodology.open .ai-methodology-card{transform:translateY(0) scale(1)}
+.ai-methodology-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.ai-methodology-head h3{margin:0;font-size:.92rem;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.ai-methodology-head button{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background-color .25s var(--ease-smooth),border-color .25s var(--ease-smooth),color .25s var(--ease-smooth)}
+.ai-methodology-head button:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--accent)}
+.ai-methodology-body{font-size:.78rem;line-height:1.55;color:var(--text-dim)}
+.ai-methodology-body p{margin:.5rem 0}
+.ai-methodology-body ul{padding-left:1.2rem;margin:.4rem 0}
+.ai-methodology-body li{margin:.2rem 0}
+.ai-methodology-body strong{color:var(--text);font-weight:600}
+.ai-methodology-body em{color:var(--text);font-style:italic}
+.ai-methodology-foot{font-size:.7rem;opacity:.65;margin-top:.8rem;padding-top:.6rem;border-top:1px solid var(--border)}
+
+/* ══════════════════════════════════════════════════
+   Accessibility & new controls (v1.10)
+   ══════════════════════════════════════════════════ */
+
+/* Weather-location inputs in settings */
+.coord-input{flex:1;min-width:0;padding:.45rem .6rem;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.75rem;font-family:inherit;outline:none;transition:border-color .25s var(--ease-smooth),box-shadow .25s var(--ease-smooth)}
+.coord-input:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow)}
+.coord-input::placeholder{color:var(--text-dim);opacity:.4}
+
+/* Visible keyboard-focus rings — the drawer is fully keyboard-navigable
+   (/, arrows, Enter) but had no focus indicator on most controls */
+.drawer-tab:focus-visible,
+.drawer-btn:focus-visible,
+.filter-chip:focus-visible,
+.theme-btn:focus-visible,
+.engine-btn:focus-visible,
+.upload-btn:focus-visible,
+.btn-sm:focus-visible,
+.settings-toggle:focus-visible,
+.settings-close:focus-visible,
+.link-remove:focus-visible,
+.src-vis:focus-visible,
+.src-del:focus-visible,
+.mode-tag:focus-visible{outline:none;box-shadow:0 0 0 2px var(--accent)}
+
+/* Respect the OS "reduce motion" preference: keep state changes
+   instant, stop the ambient orb drift */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001s !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001s !important;
+    transition-delay:0s !important;
+  }
+  .ambient .orb{animation:none}
+}
+
+/* Background tuning sliders */
+.bg-tune{margin-top:.6rem;display:flex;flex-direction:column;gap:.5rem}
+.bg-tune .tune-row{display:flex;flex-direction:column;gap:.25rem}
+.bg-tune .tune-row label{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);opacity:.8}
+.bg-tune .tune-val{font-size:.7rem;text-transform:none;letter-spacing:0;color:var(--text);opacity:.75;font-variant-numeric:tabular-nums}
+.bg-tune .glass-slider{width:100%}
+
+/* ══════════════════════════════════════════════════
+   Two-axis filter bar (v1.13)
+   Verticals (pick one) · divider · refiners (pick any)
+   ══════════════════════════════════════════════════ */
+
+/* Divider between the exclusive verticals and the multi-select
+   refiners — makes the two axes readable without a text label. */
+.filter-div{width:1px;align-self:stretch;margin:.15rem .25rem;background:var(--border-strong);opacity:.55;flex:0 0 auto}
+
+/* Refiners are additive, so they read as a distinct accent from the
+   vertical chips (which behave like radio buttons). */
+.filter-chip.refiner.active{
+  color:var(--accent);border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 14%,var(--surface));
+  box-shadow:0 0 0 1px var(--accent-glow),inset 0 1px 0 rgba(255,255,255,.05);
+  font-weight:500;
+}
+.filter-chip.refiner.active::before{content:"✓";font-size:.58rem;line-height:1;opacity:.9}
+
+/* Not supported by the selected engine (e.g. Recent on Kagi, AI-Free on
+   an engine that never injects AI answers). Visible but inert, with a
+   title explaining why — silently ignoring the click would be worse. */
+.filter-chip.unsupported{opacity:.35;cursor:not-allowed;text-decoration:line-through;text-decoration-thickness:1px}
+.filter-chip.unsupported:hover{color:var(--text-muted);border-color:var(--border);transform:none}
+
+/* Shop grid — 14 retailers, denser tiles than the 8 engines.
+   Flex rather than grid so the final short row CENTERS itself (14 items
+   = 4+4+4+2 on desktop, 3×4+2 on mobile). The AI grid centers its last
+   row with nth-child overrides, which only works for a fixed count at a
+   fixed column width; flex-wrap + justify-content:center does it for
+   any count at any breakpoint, so adding a 15th store needs no CSS. */
+.drawer-grid.shop-grid{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
+}
+.drawer-grid.shop-grid .drawer-btn{
+  flex:1 1 108px;
+  max-width:calc(25% - .2625rem);   /* 4 per row (gap .35rem × 3 ÷ 4) */
+}
+@media (max-width:520px){
+  .drawer-grid.shop-grid .drawer-btn{
+    flex-basis:88px;
+    max-width:calc(33.333% - .2334rem);  /* 3 per row */
+  }
+}
+
+/* Inline code in settings hints (bang examples) */
+.settings-hint code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.94em;
+  padding:.05em .3em;border-radius:4px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);
+}
+
+/* Bang cheat-sheet in settings (content generated from the BANGS table) */
+.bang-ref{margin-top:.4rem;display:flex;flex-direction:column;gap:.45rem}
+.bang-group{display:flex;flex-wrap:wrap;gap:.25rem;align-items:center}
+.bang-title{width:100%;font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);opacity:.7}
+.bang-item{display:inline-flex;align-items:center;gap:.25rem;font-size:.62rem;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.12rem .4rem}
+.bang-item code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.95em;color:var(--accent);background:none;border:none;padding:0}
+
+/* ══════════════════════════════════════════════
+   Search Sources management (settings)
+   ══════════════════════════════════════════════ */
+.src-block{margin-top:.15rem;display:flex;flex-direction:column;gap:.3rem}
+.src-head{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);opacity:.75}
+.src-list{display:flex;flex-direction:column;gap:.25rem}
+.src-row{display:flex;align-items:center;gap:.45rem;padding:.4rem .5rem;border-radius:var(--rs);background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:border-color .2s var(--ease-smooth),background-color .2s var(--ease-smooth),box-shadow .2s var(--ease-smooth)}
+.src-row:hover{border-color:var(--border-strong)}
+.src-row.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow)}
+.src-vis{width:28px;height:16px;border-radius:8px;background:var(--border-strong);border:none;position:relative;cursor:pointer;flex-shrink:0;padding:0;transition:background-color .2s var(--ease-smooth)}
+.src-vis::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .22s var(--ease-spring)}
+.src-vis.on{background:var(--accent)}
+.src-vis.on::after{left:14px}
+.src-icon{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.src-icon svg{width:16px;height:16px;display:block}
+.src-name{flex:1;font-size:.75rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.src-def{font-size:.54rem;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);opacity:.85;flex-shrink:0}
+.src-del{width:20px;height:20px;border-radius:50%;border:none;background:transparent;color:var(--text-muted);font-size:.65rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background-color .2s var(--ease-smooth),color .2s var(--ease-smooth)}
+.src-del:hover{background:rgba(255,60,60,.14);color:#ff5a5a}
+.src-form{display:flex;flex-direction:column;gap:.35rem;padding:.55rem;border-radius:var(--rs);background:var(--surface);border:1px solid var(--border-strong)}
+.src-input{padding:.45rem .6rem;border-radius:var(--rs);border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:.75rem;font-family:inherit;outline:none;transition:border-color .25s var(--ease-smooth),box-shadow .25s var(--ease-smooth)}
+.src-input:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-glow)}
+.src-input::placeholder{color:var(--text-dim);opacity:.4}
+select.src-input{appearance:none;-webkit-appearance:none;cursor:pointer}
+.src-form-row{display:flex;gap:.35rem;align-items:center}
+
+/* ══════════════════════════════════════════════
+   Ambient orb palettes — one per theme
+   ══════════════════════════════════════════════ */
+/* --orb-a/b/c are the gradient centers; --orb-o tones overall strength.
+   slate = greys, ivory = visible beige/off-white, navy = navy/royal blue,
+   modern = COLORFUL edge accents on a black/white base (orange·magenta·
+   purple by night, pastel by day). The orbs drift slowly via drift-a/b/c. */
+html[data-theme="slate"],html[data-theme="darkbg"]{--orb-a:#454b53;--orb-b:#3b4046;--orb-c:#565d65;--orb-o:.55}
+html[data-theme="ivory"],html[data-theme="lightbg"]{--orb-a:#c9ad80;--orb-b:#ba9a6c;--orb-c:#a88857;--orb-o:.8}
+html[data-theme="navy"]{--orb-a:#1f4fb0;--orb-b:#2a55c0;--orb-c:#153a80;--orb-o:.6}
+html[data-theme="modern"]{--orb-a:#ff6a2a;--orb-b:#e62a7a;--orb-c:#7a2dff;--orb-o:.5}
+html[data-theme="modern-day"]{--orb-a:#ffb37a;--orb-b:#ff8fb3;--orb-c:#c9a0ff;--orb-o:.5}
+html[data-theme="custom"]{--orb-a:color-mix(in srgb,var(--user-accent,#7a8a9a) 40%,#3b4046);--orb-b:color-mix(in srgb,var(--user-accent,#7a8a9a) 40%,#454b53);--orb-c:color-mix(in srgb,var(--user-accent,#7a8a9a) 45%,#565d65)}
+html[data-theme="custom"][data-custom-mode="light"]{--orb-a:color-mix(in srgb,var(--user-accent,#606060) 40%,#e6dfd3);--orb-b:color-mix(in srgb,var(--user-accent,#606060) 40%,#ece5d9);--orb-c:color-mix(in srgb,var(--user-accent,#606060) 45%,#dfd6c8);--orb-o:.38}
+
+/* Ivory & modern-day now use white text, so their settings panel is
+   darkened (--bg2). Re-tune the panel's surfaces to light-translucent so
+   buttons/rows stay visible on the dark panel (the main page keeps its
+   light-theme surfaces). */
+html[data-theme="ivory"] .settings-panel,
+html[data-theme="modern-day"] .settings-panel{
+  --surface:rgba(255,255,255,0.04);
+  --surface-hover-rgba:rgba(255,255,255,0.08);
+  --surface-active-rgba:rgba(255,255,255,0.12);
+  --border:rgba(255,255,255,0.05);
+  --border-strong:rgba(255,255,255,0.10);
+}
+
+
+/* ══ Store build: shortcut tiles + submit button ══ */
+.search-submit{flex-shrink:0;background:transparent;border:none;color:var(--text-muted);width:2.6rem;height:2.6rem;display:grid;place-items:center;margin-right:.3rem;cursor:pointer;border-radius:50%;transition:color .3s var(--ease-smooth)}
+.search-submit svg{width:1.05rem;height:1.05rem}
+.search-submit:hover{color:var(--accent)}
+.tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;width:100%;max-width:620px;margin:0;padding:0;animation:fadeUp .6s .28s both;position:relative;z-index:1}
+.tile{display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .72rem;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;transition:border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),transform .35s var(--ease-spring)}
+.tile:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+.tile-icon{width:1rem;height:1rem;flex-shrink:0}
+.tile-icon svg{width:100%;height:100%;display:block}
+.tile-name{font-size:.72rem;letter-spacing:.02em}
+.tile-shop .tile-name{opacity:.85}
