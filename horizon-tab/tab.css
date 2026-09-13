@@ -192,15 +192,17 @@ body{
 .hero .time:hover{text-shadow:0 0 40px var(--accent-glow)}
 .hero .date{font-size:.82rem;font-weight:400;letter-spacing:.05em;margin:0;animation:fadeUp .6s .15s both;color:var(--hero-sub);opacity:.7;transition:color .5s}
 
-/* ── Weather */
+/* ── Weather ── */
 .weather{margin-top:calc(var(--hero-gap,.85rem) - 1.5rem); /* container gap is 1.5rem; net date↔weather distance = --hero-gap, matching the hero rhythm */
-  display:flex;align-items:center;gap:.45rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.4rem .95rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);animation:fadeUp .6s .2s both}
+  display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.42rem 1rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);animation:fadeUp .6s .2s both}
 .weather:hover{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--accent-glow)}
-.weather-icon{font-size:1.1rem;line-height:1}
-.weather-temp{font-size:.9rem;font-weight:600;color:var(--text)}
-.weather-desc{opacity:.75}
-.weather-hilo{opacity:.5;font-size:.7rem}
-.weather-hilo::before{content:"·";margin-right:.35rem;opacity:.4}
+.weather-icon{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
+.weather-icon svg{width:1.15rem;height:1.15rem;display:block}
+.weather-temp{font-size:.92rem;font-weight:600;color:var(--text);line-height:1;white-space:nowrap}
+.weather-div{width:1px;align-self:stretch;background:var(--border-strong);opacity:.45;margin:.12rem .1rem;flex-shrink:0}
+.weather-side{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;min-width:0}
+.weather-desc{opacity:.8;font-size:.72rem;white-space:nowrap}
+.weather-hilo{opacity:.55;font-size:.66rem;white-space:nowrap}
 
 /* ══════════════════════════════════════════════════
    SEARCH SECTION — premium animated expand

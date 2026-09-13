@@ -396,13 +396,13 @@ function scheduleClock(){
 }
 
 /* ── Weather ── */
-const WEATHER_KEY="hzWeather",WEATHER_TTL=10*60*1000;
+const WEATHER_KEY="hzWeather2",WEATHER_TTL=10*60*1000;
 function weatherCoords(){
   const lat=parseFloat(state.weatherLat),lon=parseFloat(state.weatherLon);
   return Number.isFinite(lat)&&Number.isFinite(lon)?[lat,lon]:[LAT,LON];
 }
 function renderWeather(d){
-  $("weatherIcon").textContent=d.icon;
+  $("weatherIcon").innerHTML=d.icon;
   $("weatherTemp").textContent=d.temp;
   $("weatherDesc").textContent=d.desc;
   $("weatherHiLo").textContent=d.hilo;
@@ -431,17 +431,23 @@ async function fetchWeather(){
     try{const pr=chrome.storage.local.set({[WEATHER_KEY]:{t:Date.now(),lat,lon,d:data}});if(pr&&pr.catch)pr.catch(()=>{})}catch{}
   }catch{if(!cached)$("weatherDesc").textContent="unavailable"}
 }
+/* Stroke-style SVG condition icons (feather-like, currentColor) —
+   consistent with the rest of the UI; no emoji. */
 function wi(f,d){
   const F=f.toLowerCase();
-  if(F.includes("sunny")||F.includes("clear"))return d?"☀️":"🌙";
-  if(F.includes("cloud")||F.includes("overcast"))return"☁️";
-  if(F.includes("partly"))return d?"⛅":"🌙";
-  if(F.includes("rain")||F.includes("shower")||F.includes("drizzle"))return"🌧️";
-  if(F.includes("thunder")||F.includes("storm"))return"⛈️";
-  if(F.includes("snow")||F.includes("flurr")||F.includes("blizzard"))return"❄️";
-  if(F.includes("fog")||F.includes("mist")||F.includes("haze"))return"🌫️";
-  if(F.includes("wind")||F.includes("breez"))return"💨";
-  return d?"☀️":"🌙";
+  const svg=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const sun=svg(`<circle cx="12" cy="12" r="5"/><path d="M12 1.5v2M12 20.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1.5 12h2M20.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>`);
+  const moon=svg(`<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`);
+  const cloud=svg(`<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>`);
+  if(F.includes("sunny")||F.includes("clear"))return d?sun:moon;
+  if(F.includes("cloud")||F.includes("overcast"))return cloud;
+  if(F.includes("partly"))return d?sun:moon;
+  if(F.includes("rain")||F.includes("shower")||F.includes("drizzle"))return svg(`<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M8 13v8M12 15v8M16 13v8"/>`);
+  if(F.includes("thunder")||F.includes("storm"))return svg(`<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M13 11l-4 6h4l-1 6"/>`);
+  if(F.includes("snow")||F.includes("flurr")||F.includes("blizzard"))return svg(`<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M8 15v7M12 13v9M16 15v7"/>`);
+  if(F.includes("fog")||F.includes("mist")||F.includes("haze"))return svg(`<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M5 16.5h14M8 19.5h10"/>`);
+  if(F.includes("wind")||F.includes("breez"))return svg(`<path d="M9.59 4.59A2 2 0 1 1 11 8H2M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2M12.59 19.41A2 2 0 1 0 14 16H2"/>`);
+  return d?sun:moon;
 }
 
 /* ── Theme ── */
