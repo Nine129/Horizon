@@ -321,13 +321,11 @@ body{
 }
 
 /* ── Drawer grid ──
-     Two layouts:
-       - .ai-grid  : 4 on top, 2 on bottom centered to middle 2.
-                     (6 options — perplexity/grok/gemini/chatgpt/claude/deepseek)
-                     Implemented via grid-template-columns:repeat(4,1fr) and
-                     the last two items get grid-column:2 / span 1.
-       - default   : auto-fill columns for the 8 web search engines. */
-.drawer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:.35rem;padding:.15rem 0;justify-items:stretch}
+     Every category uses the same flex-wrap centering: full rows fill
+     the width and any short last row stays CENTERED under the search
+     bar. Web = 8 engines (4 per row), AI = 6 chats, Shop = 14 stores. */
+.drawer-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:.35rem;padding:.15rem 0}
+.drawer-grid .drawer-btn{flex:1 1 125px;max-width:calc(25% - .2625rem)}   /* web: 4 per row */
 /* AI grid — flex-wrap centering so the last short row stays centered at
    ANY count (6 built-ins today, more once the user adds custom ones).
    The old nth-child centering only worked for a fixed 6 at a fixed
@@ -597,6 +595,10 @@ body{
   .drawer-grid.shop-grid .drawer-btn{
     flex-basis:88px;
     max-width:calc(33.333% - .2334rem);  /* 3 per row */
+  }
+  .drawer-grid .drawer-btn{
+    flex-basis:88px;
+    max-width:calc(33.333% - .2334rem);  /* 3 per row (web too) */
   }
 }
 
