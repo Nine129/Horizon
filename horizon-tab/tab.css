@@ -345,10 +345,10 @@ body{
 }
 
 .drawer-btn{
-  display:flex;align-items:center;gap:.35rem;padding:.4rem .55rem;
+  display:flex;align-items:center;justify-content:center;gap:.35rem;padding:.4rem .55rem;
   border-radius:7px;border:1px solid transparent;background:transparent;
   color:var(--text-dim);font-size:.72rem;font-family:inherit;cursor:pointer;
-  text-align:left;
+  text-align:center;
   transition:background-color .28s var(--ease-smooth),border-color .28s var(--ease-smooth),color .28s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .28s var(--ease-smooth);
 }
 .drawer-btn:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
@@ -361,7 +361,7 @@ body{
 .drawer-btn .db-svg{flex-shrink:0;width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:transform .28s var(--ease-spring)}
 .drawer-btn .db-svg svg{width:14px;height:14px;display:block}
 .drawer-btn:hover .db-svg{transform:scale(1.08)}
-.drawer-btn .db-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer-btn .db-name{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drawer-btn .db-tag{font-size:.54rem;opacity:.3;white-space:nowrap}
 
 /* ── Drawer footer (filters + hint) ── */
