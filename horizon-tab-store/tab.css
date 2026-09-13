@@ -348,7 +348,7 @@ body{
   display:flex;align-items:center;gap:.35rem;padding:.4rem .55rem;
   border-radius:7px;border:1px solid transparent;background:transparent;
   color:var(--text-dim);font-size:.72rem;font-family:inherit;cursor:pointer;
-  text-align:left;
+  text-align:left;text-decoration:none;
   transition:background-color .28s var(--ease-smooth),border-color .28s var(--ease-smooth),color .28s var(--ease-smooth),transform .28s var(--ease-spring),box-shadow .28s var(--ease-smooth);
 }
 .drawer-btn:hover{background:var(--surface-hover-rgba);color:var(--text);border-color:var(--border-strong);transform:translateY(-1px)}
