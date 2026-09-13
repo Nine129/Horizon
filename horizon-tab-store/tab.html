@@ -31,15 +31,27 @@
     <section class="search-section" id="searchSection">
       <form id="searchForm">
         <div class="search-row">
-          <input type="text" id="searchInput" placeholder="Search with your default engine..." spellcheck="false" autocomplete="off" />
-          <button type="submit" class="search-submit" id="searchSubmit" aria-label="Search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          </button>
+          <span class="mode-tag" id="modeTag">⬡ Google</span>
+          <input type="text" id="searchInput" placeholder="Search..." spellcheck="false" autocomplete="off" />
+          <span class="search-arrow" id="searchArrow">▼</span>
         </div>
       </form>
+      <div class="search-body" id="searchBody">
+        <div class="search-drawer" id="searchDrawer">
+          <div class="drawer-section">
+            <div class="drawer-tabbar" id="drawerTabbar">
+              <button class="drawer-tab active" data-mode="web">Web Search</button>
+              <button class="drawer-tab" data-mode="ai">AI Chat</button>
+            </div>
+            <div class="drawer-grid" id="drawerGrid"></div>
+          </div>
+          <div class="drawer-footer" id="drawerFooter">
+            <div class="filter-bar" id="filterBar"></div>
+            <p class="ai-hint" id="aiModeHint"></p>
+          </div>
+        </div>
+      </div>
     </section>
-
-    <section class="tiles" id="tiles" aria-label="Shortcuts"></section>
 
     <section class="links" id="links"></section>
   </div>

@@ -1,15 +1,32 @@
 /* ════════════════════════════════════════════════
-   Horizon Tab — Web Store build (single-purpose NTP)
+   Horizon Tab — Web Store build (compliant)
    ════════════════════════════════════════════════
-   This is the compliant Chrome Web Store variant: a customizable new
-   tab page with ONE search box that always respects the user's own
-   default search engine (chrome.search API), plus plain shortcut
-   tiles to AI chats and stores. The full multi-engine drawer build
-   lives in the Horizon repo as the load-unpacked version. */
+   Same premium dashboard and shortcut drawer as the full build, with
+   the changes the Chrome Web Store single-purpose policy requires:
+
+   - The search box ALWAYS searches the user's own default engine
+     (chrome.search API). Horizon never picks an engine for you.
+   - Drawer tiles (AI chats, stores, search engines) are PLAIN LINKS
+     that open in a new tab — no query is injected anywhere.
+   - Removed for compliance only: query filters/refiners, bangs,
+     custom search sources, AI Signal, prompt bridge.
+
+   The full build with all features lives in the Horizon GitHub repo
+   as the load-unpacked version. */
 
 const LAT=40.7982,LON=-77.8599;
 
-/* ── SVG Logo Icons (web/AI glyphs reused from the full build) ── */
+/* Search engine labels + homepages (tiles only — no query building). */
+const WEB_L={google:"Google",duckduckgo:"DuckDuckGo",brave:"Brave",bing:"Bing",startpage:"Startpage",kagi:"Kagi",qwant:"Qwant",searxng:"SearXNG"};
+const WEB_HOMES={google:"https://www.google.com",duckduckgo:"https://duckduckgo.com",brave:"https://search.brave.com",bing:"https://www.bing.com",startpage:"https://www.startpage.com",kagi:"https://kagi.com",qwant:"https://www.qwant.com",searxng:"https://searx.be"};
+const WEB_ORDER=["google","duckduckgo","brave","bing","startpage","kagi","qwant","searxng"];
+
+/* AI chat providers — tiles open the chat in a new tab. */
+const AI_L={perplexity:"Perplexity",grok:"Grok",gemini:"Gemini",chatgpt:"ChatGPT",claude:"Claude",deepseek:"DeepSeek"};
+const AI_HOMES={perplexity:"https://www.perplexity.ai",grok:"https://grok.com",gemini:"https://gemini.google.com",chatgpt:"https://chatgpt.com",claude:"https://claude.ai",deepseek:"https://chat.deepseek.com"};
+const AI_ORDER=["perplexity","grok","gemini","chatgpt","claude","deepseek"];
+
+/* ── SVG Logo Icons ── */
 const LOGOS={
   google:`<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.7-.1-1.5-.2-2.2H12v4.2h5.9c-.3 1.4-1.1 2.5-2.3 3.3v2.7h3.7c2.2-2 3.4-5 3.4-8z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.6l-3.7-2.7c-1 .7-2.3 1.1-3.5 1.1-2.7 0-5-1.8-5.9-4.3H2.3v2.7C4.1 20.5 7.8 23 12 23z"/><path fill="#FBBC05" d="M6.1 14.5c-.2-.6-.4-1.3-.4-2s.1-1.4.4-2V7.7H2.3C1.5 9.1 1 10.5 1 12s.5 2.9 1.3 4.3l3.8-2.8z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .6 4.2 1.6l3.1-3.1C17.4 2.1 14.9 1 12 1 7.8 1 4.1 3.5 2.3 7.7l3.8 2.8c.9-2.5 3.2-4.3 5.9-4.3z"/></svg>`,
   duckduckgo:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#DE5833"/><path fill="#FFF" d="M7 10.5c0-.7.6-1.3 1.3-1.3s1.3.6 1.3 1.3v.6c.4-.3.9-.5 1.4-.5h.5c.3 0 .5.2.5.5s-.2.5-.5.5h-.5c-.8 0-1.4.6-1.4 1.4v1.3c0 .9-.5 1.7-1.3 2-.3.1-.6.2-.9.2-.8 0-1.5-.4-1.9-1-.4-.6-.5-1.4-.3-2.1.2-.7.7-1.2 1.4-1.5.1 0 .2-.1.3-.1v-1.3zm9 0c0-.7.6-1.3 1.3-1.3s1.3.6 1.3 1.3v1.3c.1 0 .2.1.3.1.7.3 1.2.8 1.4 1.5.2.7.1 1.5-.3 2.1-.4.6-1.1 1-1.9 1-.3 0-.6-.1-.9-.2-.8-.3-1.3-1.1-1.3-2v-1.3c0-.8-.6-1.4-1.4-1.4h-.5c-.3 0-.5-.2-.5-.5s.2-.5.5-.5h.5c.5 0 1 .2 1.4.5v-.6z"/><path fill="#FFF" d="M9.5 14.5c-.3.3-.6.5-1 .6-.4.1-.8 0-1.1-.3-.3-.3-.4-.7-.3-1.1.1-.4.4-.7.8-.8.4-.1.9 0 1.2.3.3.3.5.7.4 1.3z"/></svg>`,
@@ -27,34 +44,38 @@ const LOGOS={
   deepseek:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4D6BFE"/><path fill="#FFF" d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1 4h2v6h-2V8zm0 7h2v2h-2v-2z"/></svg>`
 };
 
-/* ── Shortcut tiles — plain links, no query rewriting ── */
-const AI_TILES=[
-  {key:"perplexity",label:"Perplexity",home:"https://www.perplexity.ai"},
-  {key:"grok",label:"Grok",home:"https://grok.com"},
-  {key:"gemini",label:"Gemini",home:"https://gemini.google.com"},
-  {key:"chatgpt",label:"ChatGPT",home:"https://chatgpt.com"},
-  {key:"claude",label:"Claude",home:"https://claude.ai"},
-  {key:"deepseek",label:"DeepSeek",home:"https://chat.deepseek.com"}
-];
-const SHOP_TILES=[
-  {label:"Amazon",home:"https://www.amazon.com",mark:"a",color:"#FF9900"},
-  {label:"eBay",home:"https://www.ebay.com",mark:"e",color:"#E53238"},
-  {label:"Walmart",home:"https://www.walmart.com",mark:"W",color:"#0071DC"},
-  {label:"Target",home:"https://www.target.com",mark:"T",color:"#CC0000"},
-  {label:"Best Buy",home:"https://www.bestbuy.com",mark:"B",color:"#0046BE"},
-  {label:"Costco",home:"https://www.costco.com",mark:"C",color:"#E32224"},
-  {label:"Home Depot",home:"https://www.homedepot.com",mark:"H",color:"#F96302"},
-  {label:"Lowe's",home:"https://www.lowes.com",mark:"L",color:"#004990"},
-  {label:"Etsy",home:"https://www.etsy.com",mark:"E",color:"#F1641E"},
-  {label:"Newegg",home:"https://www.newegg.com",mark:"N",color:"#0070CD"},
-  {label:"B&H",home:"https://www.bhphotovideo.com",mark:"B",color:"#0A2240"},
-  {label:"IKEA",home:"https://www.ikea.com",mark:"I",color:"#0058A3"},
-  {label:"Wayfair",home:"https://www.wayfair.com",mark:"W",color:"#7F187F"},
-  {label:"AliExpress",home:"https://www.aliexpress.com",mark:"A",color:"#E62E04"}
-];
+/* ── Stores — lettermark tiles (deliberately not imitation brand logos) ── */
+const SHOP={
+  amazon:{label:"Amazon",home:"https://www.amazon.com",mark:"a",color:"#FF9900"},
+  ebay:{label:"eBay",home:"https://www.ebay.com",mark:"e",color:"#E53238"},
+  walmart:{label:"Walmart",home:"https://www.walmart.com",mark:"W",color:"#0071DC"},
+  target:{label:"Target",home:"https://www.target.com",mark:"T",color:"#CC0000"},
+  bestbuy:{label:"Best Buy",home:"https://www.bestbuy.com",mark:"B",color:"#0046BE"},
+  costco:{label:"Costco",home:"https://www.costco.com",mark:"C",color:"#E32224"},
+  homedepot:{label:"Home Depot",home:"https://www.homedepot.com",mark:"H",color:"#F96302"},
+  lowes:{label:"Lowe's",home:"https://www.lowes.com",mark:"L",color:"#004990"},
+  etsy:{label:"Etsy",home:"https://www.etsy.com",mark:"E",color:"#F1641E"},
+  newegg:{label:"Newegg",home:"https://www.newegg.com",mark:"N",color:"#0070CD"},
+  bhphoto:{label:"B&H",home:"https://www.bhphotovideo.com",mark:"B",color:"#0A2240"},
+  ikea:{label:"IKEA",home:"https://www.ikea.com",mark:"I",color:"#0058A3"},
+  wayfair:{label:"Wayfair",home:"https://www.wayfair.com",mark:"W",color:"#7F187F"},
+  aliexpress:{label:"AliExpress",home:"https://www.aliexpress.com",mark:"A",color:"#E62E04"}
+};
+const SHOP_ORDER=["amazon","ebay","walmart","target","bestbuy","costco","homedepot","lowes","etsy","newegg","bhphoto","ikea","wayfair","aliexpress"];
 function markLogo(mark,color){
   return `<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5.5" fill="${color}"/><text x="12" y="16.6" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${esc(mark)}</text></svg>`;
 }
+function shopLogo(key){
+  const s=SHOP[key];if(!s)return LOGOS.google;
+  return markLogo(s.mark,s.color);
+}
+
+/* Mode-tag icons per drawer tab — inline SVG, never emoji. */
+const TAB_ICONS={
+  web:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+  ai:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2L12 3z"/></svg>`,
+  shop:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>`
+};
 
 const DL=[
   {id:"l1",label:"ChatGPT",url:"https://chatgpt.com",emoji:"",image:"https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64"},
@@ -66,7 +87,7 @@ const DL=[
 ];
 
 const DS={
-  theme:"slate",links:DL,showLinks:true,glassOpacity:0.04,
+  theme:"slate",mode:"web",links:DL,showLinks:true,glassOpacity:0.04,
   customBg:"#0d0d0d",customAccent:"#7a8a9a",customLight:false,
   weatherLat:null,weatherLon:null,
   bgBlur:0,bgDim:null,bgDark:true,bgText:"auto",
@@ -75,7 +96,7 @@ const DS={
 let state={...DS},linkId=100;
 
 /* ── Cached element lookups ── */
-const STATIC_IDS=new Set(["bgLayer","ambient","greeting","time","date","weather","weatherIcon","weatherTemp","weatherDesc","weatherHiLo","searchSection","searchForm","searchInput","searchSubmit","tiles","links","settingsToggle","settingsBackdrop","settingsPanel","settingsTitle","settingsBody","settingsClose","bgUpload"]);
+const STATIC_IDS=new Set(["bgLayer","ambient","greeting","time","date","weather","weatherIcon","weatherTemp","weatherDesc","weatherHiLo","searchSection","searchForm","searchInput","searchArrow","modeTag","searchBody","searchDrawer","drawerTabbar","drawerGrid","drawerFooter","filterBar","aiModeHint","links","settingsToggle","settingsBackdrop","settingsPanel","settingsTitle","settingsBody","settingsClose","bgUpload"]);
 const _elCache={};
 function $(id){
   if(!STATIC_IDS.has(id))return document.getElementById(id);
@@ -84,8 +105,6 @@ function $(id){
 
 /* ── Security helpers ── */
 function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}
-/* Only http(s) URLs come back from here — javascript:/data: links a user
-   (or imported settings) might put in a quick link are neutralized. */
 function safeHref(u){
   const raw=String(u||"").trim();
   try{const p=new URL(raw);if(p.protocol==="http:"||p.protocol==="https:")return p.href}catch{}
@@ -95,10 +114,10 @@ function safeHref(u){
 
 /* ── Storage ── */
 const SYS="hz",BG_KEY="***";
-const KNOWN_KEYS=["theme","links","showLinks","glassOpacity","customBg","customAccent","customLight",
+const KNOWN_KEYS=["theme","mode","links","showLinks","glassOpacity","customBg","customAccent","customLight",
   "weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","textColor"];
-let extraState={};      // keys under "hz" owned by the full build — preserved verbatim on save
-let lastSavedJSON="";   // diff guard: identical snapshots never hit storage
+let extraState={};      // keys owned by the full build — preserved verbatim on save
+let lastSavedJSON="";
 let lastSavedBG=null;
 let saveTimer=null;
 
@@ -114,6 +133,7 @@ async function loadState(){
     const b=await chrome.storage.local.get([BG_KEY]);
     if(b[BG_KEY])state.bg=b[BG_KEY];
   }catch{try{const b=localStorage.getItem(BG_KEY);if(b)state.bg=b}catch{}}
+  if(state.mode!=="web"&&state.mode!=="ai"&&state.mode!=="shop")state.mode="web";
   lastSavedBG=state.bg||null;
   lastSavedJSON=JSON.stringify(snapshotState());
 }
@@ -302,12 +322,7 @@ function clearBg(){
   delete state.bg;saveState();
 }
 
-/* ── Tiles + links ── */
-function renderTiles(){
-  const ai=AI_TILES.map(t=>`<a class="tile" href="${esc(t.home)}" title="${esc(t.label)}"><span class="tile-icon">${LOGOS[t.key]||LOGOS.google}</span><span class="tile-name">${esc(t.label)}</span></a>`).join("");
-  const shop=SHOP_TILES.map(s=>`<a class="tile tile-shop" href="${esc(s.home)}" title="${esc(s.label)}"><span class="tile-icon">${markLogo(s.mark,s.color)}</span><span class="tile-name">${esc(s.label)}</span></a>`).join("");
-  $("tiles").innerHTML=ai+shop;
-}
+/* ── Links ── */
 function renderLinks(){
   const linksEl=$("links");linksEl.style.display=state.showLinks?"":"none";
   linksEl.innerHTML=state.links.map(l=>{
@@ -315,6 +330,82 @@ function renderLinks(){
     const icon=l.image?`<img src="${esc(l.image)}" alt="" loading="lazy">`:esc(l.emoji||"🌐");
     return `<a href="${esc(href)}" class="link-item" title="${esc(l.url)}"><span class="link-icon">${icon}</span><span class="link-label">${esc(l.label)}</span></a>`;
   }).join("");
+}
+
+/* ══════════════════════════════════════════════════
+   SHORTCUT DRAWER — Web / AI Chat / Shop sections.
+   Every tile is a PLAIN LINK that opens its site in a new
+   tab. No query is ever injected; the search box above
+   always uses the browser's default search engine.
+   ══════════════════════════════════════════════════ */
+function isAI(){return state.mode==="ai"}
+function isShop(){return state.mode==="shop"}
+function svgIcon(key){
+  if(LOGOS[key])return LOGOS[key];
+  if(SHOP[key])return shopLogo(key);
+  return LOGOS.google;
+}
+
+function updateModeTag(){
+  const tag=$("modeTag");
+  const m=state.mode||"web";
+  const icon=m==="ai"?TAB_ICONS.ai:m==="shop"?TAB_ICONS.shop:TAB_ICONS.web;
+  const label=m==="ai"?"AI Chat":m==="shop"?"Shop":"Web Search";
+  tag.innerHTML=icon+' <span class="mode-label">'+label+'</span>';
+}
+function tagOnInput(){
+  const i=$("searchInput");
+  $("modeTag").classList.toggle("compact",i.value.length>0);
+}
+
+function isDrawerOpen(){return $("searchSection").classList.contains("open")}
+function openDrawer(){
+  $("searchSection").classList.add("open");
+}
+function closeDrawer(){
+  const sec=$("searchSection");
+  sec.classList.remove("open");
+  sec.style.marginBottom="";
+}
+function toggleDrawer(){isDrawerOpen()?closeDrawer():openDrawer()}
+
+function renderTabs(){
+  const m=state.mode||"web";
+  const tab=(k,l)=>`<button class="drawer-tab${m===k?" active":""}" data-mode="${k}">${l}</button>`;
+  $("drawerTabbar").innerHTML=tab("web","Web Search")+tab("ai","AI Chat")+tab("shop","Shop");
+}
+
+function renderDrawer(){
+  renderTabs();
+  const grid=$("drawerGrid");
+  const ai=isAI(),shop=isShop();
+  let items;
+  if(ai)items=AI_ORDER.map(k=>[k,AI_L[k],"ai"]);
+  else if(shop)items=SHOP_ORDER.map(k=>[k,SHOP[k].label,"shop"]);
+  else items=WEB_ORDER.map(k=>[k,WEB_L[k],"web"]);
+  grid.classList.toggle("ai-grid",ai);
+  grid.classList.toggle("shop-grid",shop);
+  grid.innerHTML=items.map(([key,label,kind])=>{
+    const home=kind==="ai"?AI_HOMES[key]:kind==="shop"?SHOP[key].home:WEB_HOMES[key];
+    return `<a class="drawer-btn" data-kind="${kind}" data-key="${key}" href="${esc(home)}" target="_blank" rel="noopener noreferrer" title="${esc(label)} — opens in a new tab"><span class="db-svg">${svgIcon(key)}</span><span class="db-name">${esc(label)}</span></a>`;
+  }).join("");
+}
+
+/* Hint line under the grid — per-tab, honest about what clicking does. */
+function renderHint(){
+  const hint=$("aiModeHint");
+  if(isAI()){hint.textContent="Opens the chat in a new tab — your query stays where you type it.";hint.classList.add("active");return}
+  if(isShop()){hint.textContent="Opens the store in a new tab — no query is sent.";hint.classList.add("active");return}
+  hint.textContent="Searches run through your browser's default search engine. These tiles just open their sites in a new tab.";
+  hint.classList.add("active");
+}
+
+function updatePlaceholder(){
+  $("searchInput").placeholder="Search with your default engine...";
+}
+
+function refreshUI(){
+  updateModeTag();renderDrawer();renderHint();updatePlaceholder();saveState();
 }
 
 /* ── Search: the user's default engine, always ── */
@@ -334,16 +425,16 @@ function submitSearch(q){
   if(!q)return;
   const nav=navURL(q);
   if(nav){window.location.href=nav;return}
-  // Always the user's default search provider (Chrome Search API). This
-  // is what keeps the extension compliant with the single-purpose policy:
-  // Horizon never decides which engine runs your query.
+  /* Always the user's default search provider (Chrome Search API).
+     Horizon never decides which engine runs the query — this is the
+     single-purpose compliance point for the Web Store build. */
   try{
     if(chrome.search&&chrome.search.query){
       chrome.search.query({text:q,disposition:"NEW_TAB"});
       return;
     }
   }catch{}
-  // Non-Chrome fallback (e.g. Firefox, which has no chrome.search).
+  // Non-Chrome fallback (Firefox has no chrome.search).
   window.location.href="https://www.google.com/search?q="+encodeURIComponent(q);
 }
 
@@ -418,8 +509,8 @@ function renderSettings(){
       </div>
     </div>
     <div class="settings-group">
-      <label class="settings-label">Search</label>
-      <p class="settings-hint">Searches run through your browser's own default search engine — whatever you picked in Chrome settings. Type a URL to navigate instead.</p>
+      <label class="settings-label">Search & Shortcuts</label>
+      <p class="settings-hint">Searches run through your browser's own default search engine — whatever you picked in Chrome settings. The shortcut drawer below the search box (Web, AI Chat, Shop) contains plain links that open in a new tab. Type a URL to navigate instead of searching.</p>
     </div>
     <div class="settings-group">
       <label class="settings-label">Quick Links</label>
@@ -509,12 +600,95 @@ document.addEventListener("keydown",e=>{
     $("searchInput").focus({preventScroll:true});
     return;
   }
-  if(e.key==="?"&&!typing&&!settingsOpen){
+  if(e.key==="?"&&!typing&&!isDrawerOpen()&&!settingsOpen){
     e.preventDefault();
     openSettings();
     return;
   }
   if(e.key==="Escape"&&$("settingsPanel").classList.contains("open"))closeSettings();
+  if(e.key==="Escape"&&isDrawerOpen())closeDrawer();
+
+  // Arrow navigation in the drawer grid
+  if(isDrawerOpen()&&["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)){
+    if(document.activeElement===$("searchInput")&&e.key!=="ArrowDown")return;
+    e.preventDefault();
+    const btns=[...document.querySelectorAll(".drawer-btn")];
+    const tabs=[...document.querySelectorAll(".drawer-tab")];
+    const active=document.activeElement;
+    const activeIdx=btns.indexOf(active);
+    const tabIdx=tabs.indexOf(active);
+
+    if(active&&activeIdx>=0){
+      const perRow=Math.max(1,Math.floor((document.querySelector(":root").offsetWidth-80)/145));
+      const col=activeIdx%perRow;
+      const isFirstCol=col===0;
+      const isLastCol=col===perRow-1||activeIdx===btns.length-1;
+      if(e.key==="ArrowLeft"&&isFirstCol){
+        const tabs2=[...document.querySelectorAll(".drawer-tab")];
+        const activeTab=document.querySelector(".drawer-tab.active");
+        const tIdx=tabs2.indexOf(activeTab);
+        if(tIdx>0){
+          tabs2[tIdx-1].click();
+          requestAnimationFrame(()=>{
+            const nt=[...document.querySelectorAll(".drawer-tab")];
+            if(nt[tIdx-1])nt[tIdx-1].focus();
+          });
+          return;
+        }
+      }
+      if(e.key==="ArrowRight"&&isLastCol){
+        const tabs2=[...document.querySelectorAll(".drawer-tab")];
+        const activeTab=document.querySelector(".drawer-tab.active");
+        const tIdx=tabs2.indexOf(activeTab);
+        if(tIdx<tabs2.length-1){
+          tabs2[tIdx+1].click();
+          requestAnimationFrame(()=>{
+            const nt=[...document.querySelectorAll(".drawer-tab")];
+            if(nt[tIdx+1])nt[tIdx+1].focus();
+          });
+          return;
+        }
+      }
+      if(e.key==="ArrowRight"&&activeIdx<btns.length-1){
+        btns[activeIdx+1].focus();
+      }else if(e.key==="ArrowLeft"&&activeIdx>0){
+        btns[activeIdx-1].focus();
+      }else if(e.key==="ArrowDown"&&activeIdx+perRow<btns.length){
+        btns[activeIdx+perRow].focus();
+      }else if(e.key==="ArrowUp"){
+        if(activeIdx-perRow>=0){
+          btns[activeIdx-perRow].focus();
+        }else{
+          const activeTab2=document.querySelector(".drawer-tab.active");
+          if(activeTab2)activeTab2.focus();
+        }
+      }
+    }else if(active&&tabIdx>=0){
+      if(e.key==="ArrowRight"&&tabIdx<tabs.length-1){
+        tabs[tabIdx+1].click();
+        requestAnimationFrame(()=>{
+          const newTabs=[...document.querySelectorAll(".drawer-tab")];
+          if(newTabs[tabIdx+1])newTabs[tabIdx+1].focus();
+        });
+      }else if(e.key==="ArrowLeft"&&tabIdx>0){
+        tabs[tabIdx-1].click();
+        requestAnimationFrame(()=>{
+          const newTabs=[...document.querySelectorAll(".drawer-tab")];
+          if(newTabs[tabIdx-1])newTabs[tabIdx-1].focus();
+        });
+      }else if(e.key==="ArrowUp"||e.key==="ArrowDown"){
+        const tab=active.dataset.mode;
+        const firstBtn=btns.find(b=>b.dataset.kind===tab);
+        if(firstBtn)firstBtn.focus();
+        else if(btns.length>0)btns[0].focus();
+      }
+    }else if(active===$("searchInput")){
+      if(e.key==="ArrowDown"){
+        const activeTab=document.querySelector(".drawer-tab.active");
+        if(activeTab)activeTab.focus();
+      }
+    }
+  }
 });
 
 /* ══════════════════════════════════════════════════
@@ -532,12 +706,53 @@ document.addEventListener("keydown",e=>{
   scheduleClock();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleClock()});
   fetchWeather();setInterval(fetchWeather,1800000);
-  renderTiles();
   renderLinks();
 
-  $("searchInput").focus({preventScroll:true});
-  $("searchForm").addEventListener("submit",e=>{e.preventDefault();submitSearch($("searchInput").value.trim())});
+  /* ── Search: click row toggles drawer, focus opens it ── */
+  const sec=$("searchSection");
+  const input=$("searchInput");
 
+  document.querySelector(".search-row").addEventListener("click",e=>{
+    if(e.target===input||input.contains(e.target)){openDrawer();return}
+    toggleDrawer();
+    if(isDrawerOpen())input.focus();
+  });
+
+  $("modeTag").addEventListener("click",e=>{
+    e.stopPropagation();
+    toggleDrawer();
+    if(isDrawerOpen())input.focus();
+  });
+  $("searchArrow").addEventListener("click",e=>{
+    e.stopPropagation();
+    toggleDrawer();
+    if(isDrawerOpen())input.focus();
+  });
+  input.focus({preventScroll:true});
+  input.addEventListener("focus",openDrawer);
+  input.addEventListener("input",tagOnInput);
+
+  // Tabs switch which shortcut section the drawer shows.
+  $("drawerTabbar").addEventListener("click",e=>{
+    const tab=e.target.closest(".drawer-tab");if(!tab)return;
+    e.stopPropagation();
+    const mode=tab.dataset.mode;
+    if(mode&&mode!==state.mode){state.mode=mode;refreshUI()}
+  });
+
+  // Close drawer on outside click.
+  document.addEventListener("pointerdown",e=>{
+    if(isDrawerOpen()&&!sec.contains(e.target)){
+      closeDrawer();
+    }
+  });
+
+  // Form submit — always the browser's default search engine.
+  $("searchForm").addEventListener("submit",e=>{e.preventDefault();submitSearch(input.value.trim())});
+
+  renderDrawer();refreshUI();
+
+  // Settings
   $("settingsToggle").addEventListener("click",openSettings);
   $("settingsClose").addEventListener("click",closeSettings);
   $("settingsBackdrop").addEventListener("click",closeSettings);
