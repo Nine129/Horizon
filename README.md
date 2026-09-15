@@ -1,54 +1,59 @@
 # Horizon
 
-A minimal, beautiful, customizable new tab page. Your horizon, your way.
+A minimal, beautiful, customizable new tab page — and a private, on-device AI-content detector. Your horizon, your way.
 
-Clock, greeting, weather, shortcut tiles, quick links, five themes, custom backgrounds, glass intensity, and more. No accounts, no ads, no tracking.
+Horizon began as one extension that did two things: replace the new tab with a fast, private dashboard (clock, weather, search drawer, quick links), and add **AI Signal**, a heuristic that flags AI-written text on search results.
 
-## Two builds, one project
+The Chrome Web Store's single-purpose policy doesn't allow one extension to change both the new tab page *and* the search experience. So Horizon ships in three forms:
 
-Horizon ships in two flavors because the Chrome Web Store's single-purpose policy treats a new tab page and a search-engine switcher as two separate products.
-
-| Build | Where it lives | What's inside |
+| Build | Where | What's inside |
 | --- | --- | --- |
-| `horizon-tab` | Load unpacked (any Chromium browser, Firefox) | The full build: multi-engine search drawer (8 web engines, 6 AI chats, 14 store searches), bangs, filters, refiners, AI Signal, prompt bridge. |
-| `horizon-tab-store` | Chrome Web Store listing | The compliant store build: same dashboard, but the search box always uses *your* default search engine (Chrome Search API), and AI chats / stores appear as plain shortcut tiles. |
+| `horizon-tab` | Load unpacked (Chromium / Firefox) | The **full build** — everything, together. |
+| `horizon-tab-store` | Chrome Web Store — "Horizon Tab" | New tab page only; search respects your default engine via the Chrome Search API. |
+| `horizon-ai-signal` | Chrome Web Store — "Horizon AI Signal" | AI Signal only; scores search results and pages, fully on-device. |
 
-The store build exists so Horizon can be installed with one click. The full build exists because it is the real product. Both share the same theme engine, settings, and design language — and the same `hz` storage keys, so switching between them keeps your settings.
+## The full build (load unpacked)
 
-## Install
+This is the real product — everything the store builds can't ship together:
 
-### Chrome Web Store (one click)
-
-Horizon Tab is available on the Chrome Web Store (store build).
-
-### Load unpacked — full build
-
-1. Download `dist/horizon-tab-full-<version>.zip` (or clone the repo).
-2. Unzip anywhere permanent.
-3. Chrome / Edge / Brave: open `chrome://extensions`, enable **Developer mode**, **Load unpacked**, select the `horizon-tab/` folder.
-4. Firefox: open `about:debugging#/runtime/this-firefox`, **Load Temporary Add-on**, select `manifest.json` inside `horizon-tab/`.
-
-### Load unpacked — store build
-
-Same steps, pointing at `horizon-tab-store/`. This is also the build whose code matches the Web Store listing exactly.
-
-## Features (full build)
-
-- **Search drawer** — one box, three tabs: web search (8 engines), AI chat (6 providers), and store search (14 retailers). Pick your default per tab; switch with one click.
-- **Bangs** — `!yt kittens`, `!gh syncthing`, `!a usb cable`. One-off redirects that never touch your saved settings.
-- **Filters** — verticals (All / News / Images / Video) plus combinable refiners (Reddit, Academic, PDF, Exact, Recent) and per-engine AI-Free mode.
-- **AI Signal** — an optional, fully on-device heuristic that flags AI-flavored writing on search results.
-- **Dashboard** — live clock and greeting, National Weather Service forecast, quick links, custom background with auto dim/blur, five themes (Slate, Ivory, Navy, Modern, Custom), glass intensity, text color override.
+- **Search drawer** — one box, three tabs: web search (8 engines), AI chat (6 providers), store search (14 retailers). Bangs, filters, refiners, AI-Free mode.
+- **AI Signal** — an optional, fully on-device heuristic that flags AI-flavored writing on search results (Google, DuckDuckGo, Brave) and article pages.
+- **Dashboard** — clock, greeting, weather (National Weather Service), quick links, custom background, five themes, glass intensity, text-color override.
 - **Prompt bridge** — optional auto-fill for AI chats that ignore prefilled links (Gemini, DeepSeek).
+
+### Install
+
+1. Download `dist/horizon-tab-full-<version>.zip`, or clone the repo.
+2. Unzip it somewhere permanent.
+3. **Chrome / Edge / Brave:** open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the `horizon-tab/` folder.
+4. **Firefox:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select `manifest.json` inside `horizon-tab/`.
+
+The same steps work for the store builds — just point at `horizon-tab-store/` or `horizon-ai-signal/` instead.
+
+## The store builds
+
+Both are one-click installs from the Chrome Web Store:
+
+- **Horizon Tab** (`horizon-tab-store/`) — the dashboard, with search delegated to your default search engine.
+- **Horizon AI Signal** (`horizon-ai-signal/`) — the detector, standalone, with its own options page.
 
 ## Why the split exists
 
-Google's single-purpose policy (violation "Red Argon") requires that a new tab page which includes a search experience respects the user's selected search settings by using the Chrome Search API. That rule is designed to stop new-tab hijacks, and it applies to everyone — including extensions like this one. Rather than ship one neutered product, Horizon ships two builds: the compliant one on the store, the full one here.
+Google's single-purpose policy (our violation was "Red Argon") requires an extension to do one narrow thing. A new tab page that also rewires search results is two things, so:
+
+1. The new-tab build uses the **Chrome Search API** — it respects your selected search engine instead of overriding it.
+2. **AI Signal** ships as its own extension, because scoring search results is a separate purpose from a new tab page.
+
+The full build here keeps both together, which is perfectly fine outside the store.
 
 ## Privacy
 
-See [PRIVACY.md](horizon-tab-store/PRIVACY.md). Short version: settings live in your browser profile, weather comes from api.weather.gov, nothing is uploaded, there are no ads or analytics.
+Local-first. No accounts, no analytics, no tracking. Settings stay in your browser profile; weather comes from `api.weather.gov`; AI Signal analyzes text on-device and uploads nothing. See `PRIVACY.md` in each build folder.
+
+## Contributing
+
+This is open source on purpose — please take it and make it better. Fork it, break it, ship your own version. The search tables in `tab.js` are plain objects, so adding an engine or provider is usually a one-line change. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](horizon-tab/LICENSE).
+MIT — see [LICENSE](LICENSE).

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Signal — Settings</title>
+<style>
+  :root { --bg:#0b0f14; --card:#141a21; --fg:#e7ecf1; --muted:#8a97a5; --accent:#22d3ee; --border:#232c36; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--fg); }
+  .wrap { max-width:560px; margin:0 auto; padding:40px 24px 80px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:13px; margin:0 0 28px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+  .label { font-size:14px; font-weight:600; }
+  .hint { color:var(--muted); font-size:12.5px; margin:6px 0 0; line-height:1.45; }
+  .hint a { color:var(--accent); text-decoration:none; }
+  .switch { position:relative; width:44px; height:24px; flex:0 0 auto; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#2a3540; border-radius:24px; cursor:pointer; transition:.18s; }
+  .slider:before { content:""; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.18s; }
+  input:checked + .slider { background:var(--accent); }
+  input:checked + .slider:before { transform:translateX(20px); }
+  .seg { display:flex; gap:8px; margin-top:10px; }
+  .seg button { flex:1; padding:9px 6px; background:#1a232c; color:var(--fg); border:1px solid var(--border); border-radius:8px; cursor:pointer; font-size:13px; }
+  .seg button.on { border-color:var(--accent); color:var(--accent); background:rgba(34,211,238,.08); }
+  .seg button small { display:block; font-size:10px; color:var(--muted); }
+  input[type=range] { width:100%; margin-top:10px; accent-color:var(--accent); }
+  .range-val { font-size:12px; color:var(--muted); }
+  input[type=text], input[type=password] { width:100%; margin-top:8px; padding:9px 11px; background:#0e141a; border:1px solid var(--border); border-radius:8px; color:var(--fg); font-size:13px; }
+  .badge { display:inline-block; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); border:1px solid var(--border); border-radius:6px; padding:2px 7px; margin-left:8px; vertical-align:middle; }
+  .save-note { color:var(--accent); font-size:12px; opacity:0; transition:.2s; }
+  .save-note.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AI Signal</h1>
+  <p class="sub">A heuristic "smell test" for AI-generated text — private and on-device.</p>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="label">Score search results</div>
+        <p class="hint">Shows an AI % badge on each result on Google, DuckDuckGo, and Brave.</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="aiSignal"><span class="slider"></span></label>
+    </div>
+    <div class="seg" id="sensitivity">
+      <button data-v="low">Low<small>only flag obvious</small></button>
+      <button data-v="med">Medium<small>default</small></button>
+      <button data-v="high">High<small>sensitive</small></button>
+    </div>
+    <p class="hint" style="margin-top:14px">Auto-hide results: <span class="range-val" id="hideVal">Off</span></p>
+    <input type="range" id="hideSlider" min="0" max="95" step="5" value="0">
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="label">Page detector <span class="badge">optional</span></div>
+        <p class="hint">Floating score on article pages you visit. Asks for permission to run on all sites; the analysis stays on-device.</p>
+      </div>
+      <label class="switch"><input type="checkbox" id="aiPageDetector"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="label">Safe Browsing key <span class="badge">optional</span></div>
+    <p class="hint">If set, the page detector also checks sites against Google Safe Browsing and warns on flagged ones — this sends the hostname to Google. Leave blank to skip. <a href="https://developers.google.com/safe-browsing/v4/get-started" target="_blank" rel="noopener">Get a key</a></p>
+    <input type="password" id="sbKey" placeholder="Enter your API key" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div class="card">
+    <div class="label">How it works</div>
+    <p class="hint">Every score is an <strong>estimate, not a verdict</strong>. It weighs text patterns (~80 AI-isms), sentence structure, author/byline, and URL shape — all computed locally on the title and snippet already shown on the page. It never fetches article bodies, and it will miss lightly-edited AI text and sometimes flag formal human prose. Treat it as a first-pass hint.</p>
+  </div>
+
+  <p class="save-note" id="saved">Saved ✓</p>
+</div>
+<script src="options.js"></script>
+</body>
+</html>

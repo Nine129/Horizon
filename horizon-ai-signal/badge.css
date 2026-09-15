@@ -1,0 +1,844 @@
+/* ════════════════════════════════════════════════════════════════════
+   Horizon AI Signal — Badge & Panel Styles
+   v2.0.9 — Un-flipped rendering + clean positioning.
+
+   Hard-won lessons:
+   1. Google wraps each title's anchor in <span class="V9tjod">
+      carrying `transform: scaleY(-1)` (CDP-confirmed). content.js
+      inserts the badge AS A SIBLING AFTER that span (in its
+      grandparent), so the badge lives in un-flipped territory
+      and needs NO counter-mirror. Earlier counter-transforms
+      on the badge made things worse — they flipped an
+      un-flipped element.
+   2. The 3-dot (⋮) kebab sits inside the same flipped span (in
+      current Google DOM) — placing the badge as a sibling of
+      the anchor lands between title and kebab and covers it.
+      Walking past the flipped span puts the badge between the
+      title row and the URL/snippet, away from the kebab.
+   3. Badge uses `display: flex` + `width: max-content` so it
+      always claims its own block line below the title, instead
+      of flowing inline next to the kebab.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Badge (compact pill) ─────────────────────────────── */
+
+.hz-ai-badge {
+  /* Block-level flex so the pill always lands on its own line below
+     the title row instead of flowing inline next to the kebab (\u22ee).
+     `width: max-content` keeps the pill sized to its content. */
+  display: flex;
+  flex-direction: column;         /* head row on top; ✕ + panel below when expanded */
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 8px;               /* symmetric — pct sits dead-center */
+  gap: 0;                          /* the 0-height panel must not add gap */
+  justify-content: center;
+  border-radius: 100px;
+  margin: 2px 0 1px 0;          /* compact, close to text */
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* Defensive against inherited Google SERP styles that flip text
+     orientation in some languages. Apply in BOTH states with
+     !important so we can't be overridden. */
+  writing-mode: horizontal-tb !important;
+  direction: ltr !important;
+  text-orientation: mixed !important;
+  unicode-bidi: isolate;
+
+  /* The badge is now injected OUTSIDE Google's flipped title-row
+     span (see content.js injectBadge), so it lives in un-flipped
+     territory and needs NO counter-mirror on its own. The compact
+     and expanded states are visually upright by default. We still
+     keep `writing-mode` / `direction` defenses in case a higher-up
+     ancestor (e.g. some Google SERP i18n variants) applies them. */
+  transform: none;
+  transform-origin: center center;
+  will-change: transform;
+  isolation: isolate;
+
+  /* iOS-grade timing:
+       container expansion  480ms with a subtle spring overshoot
+       (cubic-bezier .34 1.56 .64 1)
+       panel content fade  420ms with a smooth ease-out
+       (cubic-bezier .32 .72 0 1)
+       Stagger is applied via the .hz-panel { transition-delay }
+       so the panel content waits until the pill is ~80% grown
+       before fading in — avoids the "splat" of content onto a
+       still-resizing container. */
+  /* iOS smooth — no overshoot. Slower (.58s) so the eye can
+     track the resize; curves without overshoot feel slightly
+     slower than equivalent bouncy ones. */
+  transition:
+    max-width    .58s cubic-bezier(.32, .72, 0, 1),
+    max-height   .58s cubic-bezier(.32, .72, 0, 1),
+    padding      .58s cubic-bezier(.32, .72, 0, 1),
+    border-radius .58s cubic-bezier(.32, .72, 0, 1),
+    background   .3s ease;
+  overflow: hidden;
+  max-width: 90px;   /* safeguard only — the pill is content-sized now */
+  max-height: 24px;
+  z-index: 1;
+}
+
+/* Hover/active: clean scale only \u2014 no mirror needed. */
+.hz-ai-badge:hover {
+  transform: scale(1.06);
+}
+.hz-ai-badge:active {
+  transform: scale(0.96);
+}
+
+/* Color bands */
+.hz-ai-badge[data-band="low"]  {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+.hz-ai-badge[data-band="med"]  {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+.hz-ai-badge[data-band="high"] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+/* Head row — dot + percentage, always a centered horizontal pair.
+   Wrapping them keeps the collapsed pill perfectly centered and lets
+   the expanded state swap to a column without the panel competing
+   with the compact elements for row space. */
+.hz-ai-head {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+/* Dot */
+.hz-ai-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  /* Inherit color so it picks up the band's hue. */
+  background: currentColor;
+  opacity: 0.95;
+}
+
+.hz-ai-badge[data-band="low"]  .hz-ai-dot { background: #22c55e; }
+.hz-ai-badge[data-band="med"]  .hz-ai-dot { background: #f59e0b; }
+.hz-ai-badge[data-band="high"] .hz-ai-dot { background: #ef4444; }
+
+/* Percent label */
+.hz-ai-pct {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Dismiss button — hidden in the compact pill (it reserved an
+   almost-invisible 16px slot that skewed the pct off-center);
+   shown top-right of the expanded card instead. */
+.hz-ai-dismiss {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  margin-left: 2px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  opacity: 0.45;
+  cursor: pointer;
+  font-size: 10px;
+  border-radius: 50%;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.hz-ai-dismiss:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+.hz-ai-dismiss:active {
+  background: rgba(0, 0, 0, 0.14);
+}
+
+/* ── 2. Expanded badge ──────────────────────────────────── */
+
+.hz-ai-badge.hz-expanded {
+  max-width: min(320px, calc(100vw - 48px));
+  max-height: 520px;
+  padding: 14px 14px 12px 14px;
+  border-radius: 14px;
+  background: rgba(28, 28, 30, 0.96) !important;
+  color: #f5f5f7 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 2147483647;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start !important;
+  text-align: left;
+
+  /* Keep the un-flip in expanded state too — the panel content
+     would also be otherwise upside down. */
+  writing-mode: horizontal-tb !important;
+  direction: ltr !important;
+  text-orientation: mixed !important;
+
+  /* No mirror needed now — the badge lives in un-flipped territory. */
+  transform: none;
+  transform-origin: center center;
+}
+
+/* Dismiss button: no counter-mirror needed now that badge is in
+   un-flipped territory. */
+.hz-ai-badge.hz-expanded .hz-ai-dismiss {
+  display: inline-flex;
+  transform: none;
+  align-self: flex-end;
+  margin: -6px -4px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 0.7;
+}
+.hz-ai-badge.hz-expanded .hz-ai-dismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+/* Hide the compact head row when expanded */
+.hz-ai-badge.hz-expanded .hz-ai-head {
+  display: none;
+}
+
+/* ── 3. Panel (inside expanded badge) ───────────────────── */
+
+.hz-ai-panel {
+  /* The panel is always in the DOM. We control visibility with
+     opacity + max-height so the content can FADE OUT as the
+     container shrinks (instead of being yanked to display:none
+     the instant .hz-expanded is removed).
+     The hzPanelOut keyframe runs on close to push the content
+     down by 2px while fading — gives the close a slight
+     "settle back" feel that mirrors the open's lift. */
+  display: block;
+  /* width:0 + min-width:100% — contributes ZERO to the pill's intrinsic
+     (max-content) width, but still resolves to full container width at
+     layout time. The old width:100% leaked the panel's CONTENT width
+     into intrinsic sizing, pinning the collapsed pill at its max-width
+     clamp — the constant dead space around the percentage. */
+  width: 0;
+  min-width: 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(2px);
+  transition:
+    width     .42s cubic-bezier(.32, .72, 0, 1),
+    max-height .42s cubic-bezier(.32, .72, 0, 1),
+    opacity   .22s cubic-bezier(.32, .72, 0, 1),
+    transform .35s cubic-bezier(.32, .72, 0, 1),
+    padding   .42s cubic-bezier(.32, .72, 0, 1);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.hz-ai-badge.hz-expanded .hz-ai-panel {
+  /* Explicit width, and it MUST be explicit: with the collapsed
+     intrinsic-zero trick, nothing else tells the pill how wide the
+     card should be — width:max-content on the badge would collapse
+     to the ✕ button and wrap all content into a ~14px column (the
+     "tall skinny pill" bug). An animating explicit width feeds the
+     badge's max-content per frame, so the pill grows/shrinks into
+     the card exactly like the original max-width animation. */
+  width: min(292px, calc(100vw - 76px)); /* 320px card − 2 × 14px padding, viewport-capped */
+  max-height: 520px;
+  opacity: 1;
+  transform: translateY(0);
+  padding-top: 4px;
+  padding-bottom: 2px;
+  transition:
+    width     .58s cubic-bezier(.32, .72, 0, 1) .04s,
+    max-height .58s cubic-bezier(.32, .72, 0, 1) .04s,
+    opacity   .35s cubic-bezier(.32, .72, 0, 1) .18s,
+    transform .42s cubic-bezier(.32, .72, 0, 1) .12s,
+    padding   .58s cubic-bezier(.32, .72, 0, 1) .04s;
+}
+
+/* Panel header */
+.hz-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.hz-panel-header strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.hz-panel-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hz-panel-dot[data-band="low"]  { background: #22c55e; }
+.hz-panel-dot[data-band="med"]  { background: #f59e0b; }
+.hz-panel-dot[data-band="high"] { background: #ef4444; }
+
+/* Reasons */
+.hz-panel-reasons {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 12px;
+  word-wrap: break-word;
+}
+
+/* Actions */
+.hz-panel-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hz-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.hz-btn-human {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+.hz-btn-human:hover {
+  background: rgba(34, 197, 94, 0.32);
+}
+
+.hz-btn-ai {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+.hz-btn-ai:hover {
+  background: rgba(239, 68, 68, 0.32);
+}
+
+.hz-btn:active {
+  transform: scale(0.95);
+}
+
+/* Footer */
+.hz-panel-foot {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── 4. Collapsed result ────────────────────────────────── */
+
+.hz-ai-collapsed {
+  opacity: 0.3;
+  filter: grayscale(0.7);
+  transition: opacity 0.25s ease;
+}
+
+.hz-ai-collapsed:hover {
+  opacity: 1;
+  filter: none;
+}
+
+/* ── 5. In-page detector (compact pill) ──────────────────── */
+
+.hz-page-detector {
+  position: fixed;
+  /* top/left/right/bottom are all set inline by detector.js: it pins
+     whichever two edges the pill sits nearest, so the expanded card
+     always grows INWARD from that corner. */
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  touch-action: none;             /* pointer events drive the drag */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #f5f5f7;
+  user-select: none;
+  -webkit-user-select: none;
+  max-width: 320px;
+}
+
+.hz-page-detector-badge {
+  /* v3.1 — smaller, centered content.
+     User asked for the percentage to be centered inside the pill
+     and the whole pill to be more compact. */
+  display: inline-flex;
+  /* Column always: the collapsed badge used to be a flex ROW holding
+     header-row(width:100%) + panel(width:100%) — the two split the
+     width ~50/50, shoving the number left of center. */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;                          /* no phantom gap above the hidden panel */
+  padding: 5px 10px;
+  border-radius: 100px;
+  background: rgba(28, 28, 30, 0.92);
+  color: #f5f5f7;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition:
+    max-width    .58s cubic-bezier(.32, .72, 0, 1),
+    max-height   .6s  cubic-bezier(.32, .72, 0, 1),
+    padding      .58s cubic-bezier(.32, .72, 0, 1),
+    border-radius .58s cubic-bezier(.32, .72, 0, 1),
+    box-shadow   .3s ease;
+  overflow: hidden;
+  max-width: 120px;  /* safeguard only — the pill is content-sized now */
+  max-height: 26px;
+}
+
+.hz-page-detector-badge:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+.hz-detector-dot {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  /* Solid ~7px core + soft halo, all drawn inside the box so the
+     pill's overflow:hidden can never slice the glow. Color comes
+     from the --dot-c variable set inline by detector.js. */
+  background: radial-gradient(circle,
+    var(--dot-c, #f59e0b) 0 26%,
+    color-mix(in srgb, var(--dot-c, #f59e0b) 42%, transparent) 27% 66%,
+    transparent 70%);
+}
+
+.hz-detector-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+/* .hz-detector-label removed in v1.10 — the compact pill shows only
+   dot + NN% (the text label was clipped by the width clamp); the band
+   name lives in the expanded panel header. */
+
+/* ── 6. In-page detector expanded — grow the badge inline ── */
+
+/* Direction-aware growth. The badge is a column, so the panel lands
+   under the head row by default; anchored to the BOTTOM of the screen
+   we reverse the column so it grows upward instead of off-screen, and
+   the head row's rounded corner follows. Horizontal alignment flips
+   the same way, so a left-anchored pill grows rightward and vice
+   versa. */
+/* Bottom-docked: keep the head row at the bottom so the card unfurls
+   upward from where the pill physically sits. Right-docked: right-align
+   so it unfurls leftward. (Edge pinning in JS does the actual growth
+   direction; these just keep the pill visually anchored inside it.) */
+.hz-page-detector[data-anchor$="bottom"] .hz-page-detector-badge { flex-direction: column-reverse; }
+.hz-page-detector[data-anchor^="right"] .hz-page-detector-badge { align-items: flex-end; }
+.hz-page-detector[data-anchor^="right"] { align-items: flex-end; }
+
+/* Drag affordances */
+.hz-page-detector .hz-page-detector-badge { cursor: grab; }
+.hz-page-detector.hz-expanded .hz-page-detector-badge { cursor: default; }
+.hz-page-detector.hz-expanded .hz-detector-panel-header { cursor: grab; }
+.hz-page-detector.hz-dragging,
+.hz-page-detector.hz-dragging .hz-page-detector-badge,
+.hz-page-detector.hz-dragging .hz-detector-panel-header { cursor: grabbing; }
+/* No transitions mid-drag — the pill must track the pointer exactly */
+.hz-page-detector.hz-dragging .hz-page-detector-badge { transition: none; }
+/* Panel body stays selectable even though the shell disables selection */
+.hz-detector-panel { user-select: text; -webkit-user-select: text; }
+
+.hz-page-detector.hz-expanded .hz-page-detector-badge {
+  max-width: min(320px, calc(100vw - 48px));
+  max-height: 600px;
+  padding: 14px;
+  border-radius: 14px;
+  align-items: flex-start;
+  text-align: left;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.hz-detector-panel {
+  display: block;
+  width: 0;          /* same intrinsic-zero trick as the SERP panel */
+  min-width: 100%;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(2px);
+  transition:
+    width     .42s cubic-bezier(.32, .72, 0, 1),
+    max-height .42s cubic-bezier(.32, .72, 0, 1),
+    opacity   .22s cubic-bezier(.32, .72, 0, 1),
+    transform .35s cubic-bezier(.32, .72, 0, 1);
+}
+
+.hz-page-detector.hz-expanded .hz-detector-panel {
+  width: min(292px, calc(100vw - 76px)); /* 320px card − 2 × 14px padding, viewport-capped */
+  max-height: 600px;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    width     .58s cubic-bezier(.32, .72, 0, 1) .04s,
+    max-height .58s cubic-bezier(.32, .72, 0, 1) .04s,
+    opacity   .35s cubic-bezier(.32, .72, 0, 1) .18s,
+    transform .42s cubic-bezier(.32, .72, 0, 1) .12s;
+}
+
+/* Compact header row — hide dot/score/label when expanded */
+.hz-detector-header-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  width: 100%;
+}
+
+.hz-page-detector.hz-expanded .hz-detector-header-row {
+  display: none;
+}
+
+/* Panel content (was the absolute-positioned panel in v2.0.8, now inline) */
+.hz-detector-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hz-detector-panel-header strong {
+  flex: 1;
+}
+
+.hz-detector-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.hz-detector-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.4s cubic-bezier(0.32, 0.72, 0.24, 1);
+}
+
+.hz-detector-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.hz-detector-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.hz-detector-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hz-detector-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+}
+
+.hz-detector-section-breakdown-title {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hz-detector-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.hz-detector-sections::-webkit-scrollbar {
+  width: 6px;
+}
+.hz-detector-sections::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hz-detector-sections::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 100px;
+}
+
+.hz-detector-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.hz-detector-section-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 38px;
+  text-align: right;
+}
+
+.hz-detector-section-preview {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.hz-detector-foot {
+  font-size: 10px;
+  opacity: 0.4;
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  line-height: 1.4;
+}
+
+/* Close button visible only when expanded */
+.hz-detector-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.hz-detector-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+  opacity: 1;
+}
+
+.hz-page-detector.hz-expanded .hz-detector-close {
+  display: inline-flex;
+}
+
+/* ── 7. Dark mode for SERP pill (band colors) ──────────── */
+
+@media (prefers-color-scheme: dark) {
+  .hz-ai-badge[data-band="low"]  {
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ade80;
+  }
+  .hz-ai-badge[data-band="med"]  {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+  }
+  .hz-ai-badge[data-band="high"] {
+    background: rgba(239, 68, 68, 0.16);
+    color: #f87171;
+  }
+}
+
+/* ── 8. Small viewport tweak ───────────────────────────── */
+
+@media (max-width: 480px) {
+  .hz-page-detector {
+    bottom: 16px;
+    right: 16px;
+    max-width: calc(100vw - 32px);
+  }
+  .hz-page-detector-badge,
+  .hz-page-detector.hz-expanded .hz-page-detector-badge {
+    max-width: 100%;
+  }
+}
+
+
+/* Respect reduced-motion preference — collapse to instant flip */
+@media (prefers-reduced-motion: reduce) {
+  .hz-ai-badge,
+  .hz-page-detector-badge,
+  .hz-ai-panel,
+  .hz-detector-panel {
+    transition-duration: 0.001s !important;
+    animation-duration: 0.001s !important;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   v3.1 — Stop Google parents from clipping the badge.
+   Google wraps each result in a series of containers (`.g`,
+   `.MjjYud`, `.hlcw0c`, etc.) that often have `overflow:hidden`
+   for layout reasons. When we inject the badge as a child, the
+   parent clips it. We force the most common parent containers
+   to `overflow: visible` so the badge can extend below the
+   result row without being cut off.
+   Scoped to the common Google SERP parent classes only — we
+   don't want to leak overflow:visible across the whole page. ── */
+.g, .MjjYud, .hlcw0c, .kvH3mc, .B6fmyf, .tF2Cxc, .yuRUbf {
+  overflow: visible !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   v3.1 — Methodology modal (in-page)
+   Hardened: double-class specificity + !important on critical
+   properties so Google's page-wide styles can't make it render
+   as a plain white box. Appended to end of file so the existing
+   reset rules at the top don't get duplicated.
+   ════════════════════════════════════════════════════════════════════ */
+
+body > .hz-method-modal,
+.hz-method-modal.hz-method-modal{
+  position:fixed !important;inset:0 !important;z-index:2147483647 !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  padding:24px !important;
+  margin:0 !important;
+  background:rgba(0,0,0,0.6) !important;
+  backdrop-filter:blur(8px) !important;-webkit-backdrop-filter:blur(8px) !important;
+  animation:hzMethodIn .25s cubic-bezier(.32,.72,0,1) both;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;
+  color-scheme:dark !important;
+}
+@keyframes hzMethodIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+.hz-method-card.hz-method-card{
+  position:relative !important;
+  width:100% !important;max-width:520px !important;max-height:80vh !important;
+  overflow-y:auto !important;
+  padding:22px 24px 24px !important;
+  margin:0 !important;
+  border:1px solid rgba(255,255,255,0.08) !important;
+  border-radius:14px !important;
+  background:rgba(28,28,30,0.98) !important;
+  background-color:rgba(28,28,30,0.98) !important;
+  color:#f5f5f7 !important;
+  box-shadow:0 24px 60px rgba(0,0,0,0.45) !important;
+  animation:hzMethodCardIn .4s cubic-bezier(.32,.72,0,1) both;
+  box-sizing:border-box !important;
+}
+@keyframes hzMethodCardIn{
+  from{opacity:0;transform:translateY(8px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.hz-method-card h3{margin:0 0 4px !important;font-size:18px !important;font-weight:700 !important;color:#fff !important}
+.hz-method-sub{margin:0 0 14px !important;font-size:12px !important;color:rgba(255,255,255,0.6) !important;line-height:1.5 !important}
+.hz-method-card h4{margin:14px 0 4px !important;font-size:13px !important;font-weight:600 !important;color:#fff !important;letter-spacing:.02em !important}
+.hz-method-card p{margin:0 0 10px !important;font-size:13px !important;line-height:1.55 !important;color:rgba(255,255,255,0.78) !important}
+.hz-method-card ul{margin:0 0 10px !important;padding-left:18px !important;font-size:13px !important;line-height:1.6 !important;color:rgba(255,255,255,0.78) !important;list-style:disc !important}
+.hz-method-card li{margin-bottom:4px !important;color:rgba(255,255,255,0.78) !important}
+.hz-method-card em{font-style:normal !important;color:rgba(255,255,255,0.95) !important;background:rgba(255,255,255,0.06) !important;padding:0 4px !important;border-radius:3px !important}
+.hz-method-foot{margin-top:14px !important;font-size:11px !important;color:rgba(255,255,255,0.45) !important;border-top:1px solid rgba(255,255,255,0.08) !important;padding-top:10px !important}
+.hz-method-close{
+  position:absolute !important;top:10px !important;right:10px !important;
+  width:28px !important;height:28px !important;border:none !important;border-radius:50% !important;
+  background:rgba(255,255,255,0.08) !important;color:rgba(255,255,255,0.7) !important;
+  font-size:14px !important;cursor:pointer !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  padding:0 !important;line-height:1 !important;
+  transition:background .15s,color .15s;
+}
+.hz-method-close:hover{background:rgba(255,255,255,0.16) !important;color:#fff !important}
+
+/* The "How this works" link inside the pill panel — looks like a
+   proper text link, not a default browser button. */
+.hz-panel-method-link.hz-panel-method-link{
+  background:transparent !important;
+  border:none !important;
+  color:rgba(255,255,255,0.6) !important;
+  font:inherit !important;
+  font-size:11px !important;
+  font-weight:500 !important;
+  text-decoration:underline !important;
+  text-underline-offset:2px !important;
+  cursor:pointer !important;
+  padding:2px 4px !important;
+  border-radius:4px !important;
+  box-shadow:none !important;
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  transition:color .15s,background .15s;
+}
+.hz-panel-method-link.hz-panel-method-link:hover{
+  color:rgba(255,255,255,0.95) !important;
+  background:rgba(255,255,255,0.06) !important;
+  text-decoration:underline !important;
+}
+
+/* ── 10. Safe Browsing warning row (v1.10) ─────────────────
+   Shown at the top of the expanded page-detector panel when the
+   background worker's Google Safe Browsing check (user-supplied
+   API key, optional) flags the current hostname. */
+.hz-detector-sb-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 11.5px;
+  line-height: 1.4;
+  font-weight: 600;
+}
