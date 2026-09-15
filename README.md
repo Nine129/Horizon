@@ -34,14 +34,15 @@ This is the real product — everything the store builds can't ship together:
 - **Dashboard** — clock, greeting, weather (National Weather Service), quick links, custom background, five themes, glass intensity, text-color override.
 - **Prompt bridge** — optional auto-fill for AI chats that ignore prefilled links (Gemini, DeepSeek).
 
-### Install
+### Install (from the zip)
 
-1. Download `dist/horizon-tab-full-<version>.zip`, or clone the repo.
-2. Unzip it somewhere permanent.
-3. **Chrome / Edge / Brave:** open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the `horizon-tab/` folder.
-4. **Firefox:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select `manifest.json` inside `horizon-tab/`.
+1. Download the zip and unzip it. The files (including `manifest.json`) land directly in the folder you unzipped to.
+2. **Chrome / Edge / Brave:** open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select that folder.
+3. **Firefox:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on**, and select the `manifest.json` inside that folder.
 
-The same steps work for the store builds — just point at `horizon-tab-store/` or `horizon-ai-signal/` instead.
+### Install (from source)
+
+If you cloned the repo instead, the builds live in `horizon-tab/`, `horizon-tab-store/`, and `horizon-ai-signal/`. Load unpacked on whichever you want.
 
 ## The store builds
 
