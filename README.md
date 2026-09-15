@@ -2,6 +2,19 @@
 
 A minimal, beautiful, customizable new tab page — and a private, on-device AI-content detector. Your horizon, your way.
 
+## Download
+
+**Want the full version? [Download the zip](https://github.com/RishvanthAmsaraj/Horizon/releases/download/v1.14.0/horizon-tab-full-1.14.0.zip).**
+
+Unzip it, open `chrome://extensions` in Chrome, turn on **Developer mode**, click **Load unpacked**, and select the unzipped folder. That's the whole install.
+
+Prefer a one-click install from the store?
+
+- [Horizon Tab](https://chromewebstore.google.com/detail/horizon-tab/gkhmbjhhpbeihhnobhkocagfabojfjoa): the new tab page
+- [Horizon AI Signal](https://chromewebstore.google.com/detail/horizon-ai-signal/njolionpcojhnogoinllcmamnjcbkdgg): the detector
+
+All files are also on the [Releases page](https://github.com/RishvanthAmsaraj/Horizon/releases).
+
 Horizon began as one extension that did two things: replace the new tab with a fast, private dashboard (clock, weather, search drawer, quick links), and add **AI Signal**, a heuristic that flags AI-written text on search results.
 
 The Chrome Web Store's single-purpose policy doesn't allow one extension to change both the new tab page *and* the search experience. So Horizon ships in three forms:
