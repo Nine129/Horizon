@@ -4,8 +4,11 @@
    the one-frame slate flash. This script runs before first paint and
    re-applies the last-saved theme + background from a synchronous
    localStorage hint (written by writePrepaintHint in tab.js). It only
-   touches <html> attributes and inherited vars — <body> isn't parsed yet.
-   If the hint is missing or stale, boot corrects everything as before. */
+   touches <html> attributes and inherited vars.
+   If the hint is missing or stale, boot corrects everything as before.
+   Also pre-renders the clock/date text: boot awaits chrome.storage before
+   scheduleClock() runs, so frame one shows "--:--" until the async read
+   resolves. Date uses en-US like updateClock in tab.js. */
 (function(){
   var root=document.documentElement,hint=null;
   try{hint=JSON.parse(localStorage.getItem("hzPrepaint")||"null")}catch(e){return}

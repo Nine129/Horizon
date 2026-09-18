@@ -285,22 +285,23 @@ function safeTemplate(u){
 const SYS="hz",BG_KEY="***";
 const KNOWN_KEYS=["theme","searchEngine","aiProvider","links","showLinks","glassOpacity","searchType",
   "customBg","customAccent","customLight","aiFreeOn","aiSignal","aiSensitivity","aiHideAbove",
-  "aiPageDetector","weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","aiBridge","aiBridgeSubmit",
+  "aiPageDetector","weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","bgTiny","aiBridge","aiBridgeSubmit",
   "mode","vertical","refiners","shopSite","resetFilters",
   "hiddenWeb","hiddenAI","hiddenShop","customWeb","customAI","customShop","textColor"];
 let extraState={};      // keys under "hz" owned by other parts of the extension — preserved verbatim on save
 let lastSavedJSON="";   // diff guard: identical snapshots never hit storage (sync quota: 120 writes/min)
 let lastSavedBG=null;   // the bg data-URL (up to ~500 KB) is only written when it actually changes
+let lastSavedTiny=undefined; // 32px blurred placeholder (~2-4 KB); same diff guard, same write path
 let saveTimer=null;
-
 /* Synchronous pre-paint hint for the next new tab (see prepaint.js).
    chrome.storage reads always miss frame one; localStorage doesn't.
    Diffed like the state save, so slider drags don't spam it.
-   Best-effort: if the bg data-URL blows the ~5 MB quota, keep the
-   theme-only half — first paint still gets the right theme. */
+   bgTiny (32px blurred placeholder, ~2-4 KB) is always quota-safe;
+   the full data-URL often isn't. Best-effort: if even the tiny blows
+   the ~5 MB quota, keep the theme-only half. */
 let lastHintJSON="";
 function writePrepaintHint(){
-  const h={theme:state.theme||"slate",bg:state.bg||null,
+  const h={theme:state.theme||"slate",bg:state.bgTiny||state.bg||null,
     bgDark:state.bgDark,bgDim:state.bgDim,bgBlur:state.bgBlur,
     glass:state.glassOpacity,text:state.textColor||null,
     customBg:state.customBg||null,customAccent:state.customAccent||null};
@@ -319,14 +320,16 @@ async function loadState(){
     }
   }catch{try{const s=localStorage.getItem(SYS);if(s)state={...DS,...JSON.parse(s),links:JSON.parse(s).links||DL}}catch{}}
   try{
-    const b=await chrome.storage.local.get([BG_KEY]);
+    const b=await chrome.storage.local.get([BG_KEY,"hzBgTiny"]);
     if(b[BG_KEY])state.bg=b[BG_KEY];
+    if(b.hzBgTiny)state.bgTiny=b.hzBgTiny;
   }catch{try{const b=localStorage.getItem(BG_KEY);if(b)state.bg=b}catch{}}
   migrateSearchState();
   sanitizeCustom();
   if(state.resetFilters){state.vertical="all";state.refiners=[];state.aiFreeOn=false}
   ensureActive();
   lastSavedBG=state.bg||null;
+  lastSavedTiny=state.bgTiny||null;
   lastSavedJSON=JSON.stringify(snapshotState());
   writePrepaintHint();
 }
@@ -356,6 +359,12 @@ function saveStateNow(){
     lastSavedBG=bg;
     if(bg){try{const p=chrome.storage.local.set({[BG_KEY]:bg});if(p&&p.catch)p.catch(()=>{})}catch{try{localStorage.setItem(BG_KEY,bg)}catch{}}}
     else{try{chrome.storage.local.remove(BG_KEY)}catch{}}
+  }
+  const tiny=state.bgTiny||null;
+  if(tiny!==lastSavedTiny){
+    lastSavedTiny=tiny;
+    if(tiny){try{const p=chrome.storage.local.set({["hzBgTiny"]:tiny});if(p&&p.catch)p.catch(()=>{})}catch{}}
+    else{try{chrome.storage.local.remove("hzBgTiny")}catch{}}
   }
   writePrepaintHint();
 }
@@ -608,6 +617,15 @@ function bgVars(){
   el.style.setProperty("--bg-blur",`${blur}px`);
   el.classList.toggle("has-blur",blur>0);
 }
+/* 32px blurred placeholder for the decode gap. Built once at upload
+   from the downscaled canvas: same pixels, ~2-4 KB, decodes in ~1 frame.
+   Boot and prepaint paint this first, then swap the full image on decode
+   — so the veil never sits over an empty layer (the black flash). */
+function makeTiny(c){
+  const t=document.createElement("canvas");t.width=t.height=32;
+  const x=t.getContext("2d");x.filter="blur(2px)";x.drawImage(c,0,0,32,32);
+  return t.toDataURL("image/jpeg",.6);
+}
 function applyBg(data,recompute){
   if(!data){clearBg();return}
   const img=new Image();
@@ -636,7 +654,9 @@ function paintBg(data,dark){
   root.classList.toggle("has-blur",(state.bgBlur??0)>0);
 }
 /* Fast path: cached veil values exist (persisted via writePrepaintHint),
-   so paint the image NOW instead of waiting for decode + analyze. The
+   so paint the image NOW instead of waiting for decode + analyze. When a
+   tiny placeholder exists it paints first (decodes in ~1 frame), then the
+   full image swaps in on decode — no veil-over-nothing black frame. The
    forced text theme and dim match the pre-painted frame exactly; when
    `analyze` finishes it only corrects drift (e.g. after a bgText change
    saved mid-decode). First call after upgrade has no cached values and
@@ -644,21 +664,24 @@ function paintBg(data,dark){
 function applyBgFast(data){
   const dark=state.bgDark,dim=state.bgDim;
   if(typeof dark!=="boolean"||typeof dim!=="number")return applyBg(data,false);
-  paintBg(data,dark);
+  const tiny=state.bgTiny;
+  paintBg(tiny||data,dark);
   state.bg=data;saveState();
   const img=new Image();
   img.onload=()=>{
+    if(tiny)paintBg(data,dark); // swap placeholder → full on decode
     const{mean,center}=analyze(img);
     const want=state.bgText==="white"?true:state.bgText==="black"?false:(center<=.55);
-    if(want===state.bgDark)return; // no drift — leave the pre-painted frame alone
+    if(want===state.bgDark)return; // no drift — leave the painted frame alone
     applyBg(data,false);
   };img.src=data;
 }
 function clearBg(){
   const el=$("bgLayer");el.classList.remove("has-image","has-blur");el.style.removeProperty("--user-bg");el.style.removeProperty("--overlay-c");el.style.removeProperty("--bg-blur");
-  $("ambient").style.display="";document.documentElement.classList.remove("has-bg");
+  state.bgDim=null;state.bgDark=undefined;
+  $("ambient").style.display="";document.documentElement.classList.remove("has-bg","has-blur");
   const t=state.theme||"slate";if(t==="custom")applyCustomTheme();else if(t==="modern")swModern();else document.documentElement.setAttribute("data-theme",t);
-  delete state.bg;saveState();
+  delete state.bg;delete state.bgTiny;saveState();
 }
 
 /* Bang cheat-sheet, GENERATED from the BANGS table so the reference can
@@ -1421,7 +1444,7 @@ $("bgUpload").addEventListener("change",e=>{
       if(w>MD||h>MD){const R=Math.min(MD/w,MD/h);w=Math.round(w*R);h=Math.round(h*R)}
       const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
       const comp=qu=>{const d=c.toDataURL("image/jpeg",qu);return d.length*.75>500*1024&&qu>.1?comp(qu-.05):d};
-      state.bgDim=null;applyBg(comp(q),true);renderSettings();
+      state.bgDim=null;state.bgTiny=makeTiny(c);applyBg(comp(q),true);renderSettings();
     };img.src=r.result;
   };r.readAsDataURL(f);e.target.value="";
 });
@@ -1552,6 +1575,9 @@ document.addEventListener("keydown",e=>{
   if(state.bg)applyBgFast(state.bg);
   else applyTheme(state.theme||"slate");
   applyTextColor();
+  /* Clock before the async bg decode: cold starts show "--:--" until
+     storage resolves, and per the user report images can take longer. */
+  scheduleClock();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleClock()});
   fetchWeather();setInterval(fetchWeather,1800000);
   renderLinks();

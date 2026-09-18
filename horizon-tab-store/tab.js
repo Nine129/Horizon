@@ -115,19 +115,20 @@ function safeHref(u){
 /* ── Storage ── */
 const SYS="hz",BG_KEY="***";
 const KNOWN_KEYS=["theme","mode","links","showLinks","glassOpacity","customBg","customAccent","customLight",
-  "weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","textColor"];
+  "weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","bgTiny","textColor"];
 let extraState={};      // keys owned by the full build — preserved verbatim on save
 let lastSavedJSON="";
 let lastSavedBG=null;
+let lastSavedTiny=undefined;
 let saveTimer=null;
 /* Synchronous pre-paint hint for the next new tab (see prepaint.js).
    chrome.storage reads always miss frame one; localStorage doesn't.
    Diffed like the state save, so slider drags don't spam it.
-   Best-effort: if the bg data-URL blows the ~5 MB quota, keep the
-   theme-only half — first paint still gets the right theme. */
+   bgTiny (~2-4 KB) is always quota-safe. Best-effort: if even the tiny blows
+   the ~5 MB quota, keep the theme-only half
 let lastHintJSON="";
 function writePrepaintHint(){
-  const h={theme:state.theme||"slate",bg:state.bg||null,
+  const h={theme:state.theme||"slate",bg:state.bgTiny||state.bg||null,
     bgDark:state.bgDark,bgDim:state.bgDim,bgBlur:state.bgBlur,
     glass:state.glassOpacity,text:state.textColor||null,
     customBg:state.customBg||null,customAccent:state.customAccent||null};
@@ -147,10 +148,13 @@ async function loadState(){
     }
   }catch{try{const s=localStorage.getItem(SYS);if(s)state={...DS,...JSON.parse(s),links:JSON.parse(s).links||DL}}catch{}}
   try{
-    const b=await chrome.storage.local.get([BG_KEY]);
+    const b=await chrome.storage.local.get([BG_KEY,"hzBgTiny"]);
     if(b[BG_KEY])state.bg=b[BG_KEY];
+    if(b.hzBgTiny)state.bgTiny=b.hzBgTiny;
   }catch{try{const b=localStorage.getItem(BG_KEY);if(b)state.bg=b}catch{}}
   if(state.mode!=="web"&&state.mode!=="ai"&&state.mode!=="shop")state.mode="web";
+  lastSavedBG=state.bg||null;
+  lastSavedTiny=state.bgTiny||null;
   lastSavedJSON=JSON.stringify(snapshotState());
   writePrepaintHint();
 }
@@ -177,6 +181,10 @@ function saveStateNow(){
     if(bg){try{const p=chrome.storage.local.set({[BG_KEY]:bg});if(p&&p.catch)p.catch(()=>{})}catch{try{localStorage.setItem(BG_KEY,bg)}catch{}}}
     else{try{chrome.storage.local.remove(BG_KEY)}catch{}}
   }
+  const tiny=state.bgTiny||null;
+  if(tiny!==lastSavedTiny){lastSavedTiny=tiny;
+    if(tiny){try{chrome.storage.local.set({["hzBgTiny"]:tiny})}catch{}}
+    else{try{chrome.storage.local.remove("hzBgTiny")}catch{}}}
   writePrepaintHint();
 }
 window.addEventListener("pagehide",()=>{if(saveTimer)saveStateNow()});
@@ -364,6 +372,15 @@ function bgVars(){
   el.style.setProperty("--bg-blur",`${blur}px`);
   el.classList.toggle("has-blur",blur>0);
 }
+/* 32px blurred placeholder for the decode gap. Built once at upload
+   from the downscaled canvas: same pixels, ~2-4 KB, decodes in ~1 frame.
+   Boot and prepaint paint this first, then swap the full image on decode
+   — so the veil never sits over an empty layer (the black flash). */
+function makeTiny(c){
+  const t=document.createElement("canvas");t.width=t.height=32;
+  const x=t.getContext("2d");x.filter="blur(2px)";x.drawImage(c,0,0,32,32);
+  return t.toDataURL("image/jpeg",.6);
+}
 function applyBg(data,recompute){
   if(!data){clearBg();return}
   const img=new Image();
@@ -390,10 +407,12 @@ function paintBg(data,dark){
 function applyBgFast(data){
   const dark=state.bgDark,dim=state.bgDim;
   if(typeof dark!=="boolean"||typeof dim!=="number")return applyBg(data,false);
-  paintBg(data,dark);
+  const tiny=state.bgTiny;
+  paintBg(tiny||data,dark);
   state.bg=data;saveState();
   const img=new Image();
   img.onload=()=>{
+    if(tiny)paintBg(data,dark);
     const{mean,center}=analyze(img);
     const want=state.bgText==="white"?true:state.bgText==="black"?false:(center<=.55);
     if(want===state.bgDark)return;
@@ -405,7 +424,7 @@ function clearBg(){
   state.bgDim=null;state.bgDark=undefined;
   $("ambient").style.display="";document.documentElement.classList.remove("has-bg","has-blur");
   const t=state.theme||"slate";if(t==="custom")applyCustomTheme();else if(t==="modern")swModern();else document.documentElement.setAttribute("data-theme",t);
-  delete state.bg;saveState();
+  delete state.bg;delete state.bgTiny;saveState();
 }
 
 /* ── Links ── */
@@ -671,7 +690,7 @@ $("bgUpload").addEventListener("change",e=>{
       if(w>MD||h>MD){const R=Math.min(MD/w,MD/h);w=Math.round(w*R);h=Math.round(h*R)}
       const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
       const comp=qu=>{const d=c.toDataURL("image/jpeg",qu);return d.length*.75>500*1024&&qu>.1?comp(qu-.05):d};
-      state.bgDim=null;applyBg(comp(q),true);renderSettings();
+      state.bgDim=null;state.bgTiny=makeTiny(c);applyBg(comp(q),true);renderSettings();
     };img.src=r.result;
   };r.readAsDataURL(f);e.target.value="";
 });
@@ -789,6 +808,7 @@ document.addEventListener("keydown",e=>{
   else applyTheme(state.theme||"slate");
   applyTextColor();
 
+  /* Clock first: cold starts show "--:--" until storage resolves. */
   scheduleClock();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleClock()});
   fetchWeather();setInterval(fetchWeather,1800000);
