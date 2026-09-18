@@ -142,6 +142,13 @@ body{
 /* no `fixed` attachment: .bg-layer is already position:fixed, so it
    bought nothing and cost a full-viewport repaint path */
 .bg-layer.has-image{background:var(--user-bg) center/cover no-repeat}
+/* Pre-paint (prepaint.js): before boot adds .has-image to #bgLayer, the
+   html-level hint paints the same image + veil so frame one is already
+   correct. Same vars, so boot's values land with no visible swap. */
+html.has-bg .bg-layer{background:var(--user-bg) center/cover no-repeat}
+html.has-bg .bg-layer::after{content:'';position:fixed;inset:0;z-index:0;background:var(--overlay-c,transparent);pointer-events:none}
+html.has-bg.has-blur .bg-layer::after{backdrop-filter:blur(var(--bg-blur,0px));-webkit-backdrop-filter:blur(var(--bg-blur,0px))}
+html.has-bg .ambient{display:none}
 /* Overlay + blur are both user-controlled now. Blur defaults to 0 so an
    uploaded image keeps its full detail; the veil is only as strong as
    the contrast math says it needs to be (see autoDim in tab.js). */

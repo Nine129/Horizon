@@ -14,7 +14,7 @@ Horizon makes a small number of network requests only to power specific features
 
 | Feature | Destination | What is sent |
 |---|---|---|
-| Weather | `api.weather.gov` (US National Weather Service) | Your configured coordinates (or the default location) to fetch the local forecast. US coverage only. |
+| Weather | `api.weather.gov` (US National Weather Service) or `api.open-meteo.com` (Open-Meteo, global fallback) | Your configured coordinates (or the default location) to fetch the local forecast. NWS is tried first; Open-Meteo serves non-US locations. |
 | Quick-link favicons | `google.com/s2/favicons` | The domain of a quick link, to fetch its icon. |
 | Safe Browsing (optional) | `safebrowsing.googleapis.com` | The hostname of a page you visit — **only** if you have explicitly added your own Google Safe Browsing API key in settings. |
 | Searches, AI chats, store search | the service you pick (Google, Amazon, etc.) | Whatever you type into the search box. These are normal navigations you initiate, identical to typing the query on the site directly. |

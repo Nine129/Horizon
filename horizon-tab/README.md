@@ -16,7 +16,7 @@ Horizon replaces Chrome's default new tab with a fast, private dashboard — a c
 - **Themes** — Slate, Ivory, Navy, Modern (auto day/night), and a fully custom color theme.
 - **Custom background** — upload any image; auto-contrast dimming and optional blur keep the text legible.
 - **Quick links** — your own row of shortcuts, editable inline.
-- **Weather** — local forecast from the National Weather Service (US), cached so ten tabs cost one request.
+- **Weather** — local forecast worldwide (National Weather Service in the US, Open-Meteo fallback elsewhere), cached so ten tabs cost one request.
 - **AI Signal (beta)** — a fully client-side "smell test" that scores search results for AI-flavored writing. No pages are fetched; nothing leaves your device. Optional page detector + Safe Browsing check (bring your own API key).
 
 ## Privacy

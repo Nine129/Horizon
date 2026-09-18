@@ -293,6 +293,23 @@ let lastSavedJSON="";   // diff guard: identical snapshots never hit storage (sy
 let lastSavedBG=null;   // the bg data-URL (up to ~500 KB) is only written when it actually changes
 let saveTimer=null;
 
+/* Synchronous pre-paint hint for the next new tab (see prepaint.js).
+   chrome.storage reads always miss frame one; localStorage doesn't.
+   Diffed like the state save, so slider drags don't spam it.
+   Best-effort: if the bg data-URL blows the ~5 MB quota, keep the
+   theme-only half — first paint still gets the right theme. */
+let lastHintJSON="";
+function writePrepaintHint(){
+  const h={theme:state.theme||"slate",bg:state.bg||null,
+    bgDark:state.bgDark,bgDim:state.bgDim,bgBlur:state.bgBlur,
+    glass:state.glassOpacity,text:state.textColor||null,
+    customBg:state.customBg||null,customAccent:state.customAccent||null};
+  const j=JSON.stringify(h);
+  if(j===lastHintJSON)return;
+  lastHintJSON=j;
+  try{localStorage.setItem("hzPrepaint",j)}
+  catch{try{const slim=JSON.stringify({...h,bg:null});lastHintJSON=slim;localStorage.setItem("hzPrepaint",slim)}catch{}}
+}
 async function loadState(){
   try{
     const s=await chrome.storage.sync.get([SYS]);
@@ -311,6 +328,7 @@ async function loadState(){
   ensureActive();
   lastSavedBG=state.bg||null;
   lastSavedJSON=JSON.stringify(snapshotState());
+  writePrepaintHint();
 }
 function snapshotState(){
   const o={...extraState};
@@ -339,6 +357,7 @@ function saveStateNow(){
     if(bg){try{const p=chrome.storage.local.set({[BG_KEY]:bg});if(p&&p.catch)p.catch(()=>{})}catch{try{localStorage.setItem(BG_KEY,bg)}catch{}}}
     else{try{chrome.storage.local.remove(BG_KEY)}catch{}}
   }
+  writePrepaintHint();
 }
 // A pending debounced save must not be lost when the tab navigates
 // (e.g. changing a filter and pressing Enter within 250 ms).
@@ -408,8 +427,10 @@ function renderWeather(d){
   $("weatherHiLo").textContent=d.hilo;
 }
 /* Cached in chrome.storage.local: opening ten tabs in a row costs one
-   NWS round-trip, not ten. Stale data renders instantly, then refreshes
-   in the background. 8 s abort so a slow API never hangs the badge. */
+   round-trip, not ten. Stale data renders instantly, then refreshes
+   in the background. 8 s abort so a slow API never hangs the badge.
+   NWS first (US, preserves the existing phrasing); anywhere it fails —
+   non-US coords, outage — Open-Meteo covers the globe with no key. */
 async function fetchWeather(){
   const[lat,lon]=weatherCoords();
   let cached=null;
@@ -419,17 +440,59 @@ async function fetchWeather(){
     if(Date.now()-cached.t<WEATHER_TTL)return;
   }
   try{
-    const ac=new AbortController();const to=setTimeout(()=>ac.abort(),8000);
-    const p=await(await fetch(`https://api.weather.gov/points/${lat},${lon}`,{signal:ac.signal})).json();
-    const f=await(await fetch(p.properties.forecast,{signal:ac.signal})).json(),ps=f.properties.periods;
-    clearTimeout(to);
-    const c=ps[0],nx=ps[1],t=c.temperature,d=c.isDaytime;
-    let hi=nx&&nx.isDaytime?nx.temperature:t,lo=nx&&!nx.isDaytime?nx.temperature:t;
-    if(!d){lo=t;const td=ps[2]&&ps[2].isDaytime?ps[2]:null;hi=td?td.temperature:nx?nx.temperature:t}
-    const data={icon:wi(c.shortForecast,d),temp:`${t}°`,desc:c.shortForecast,hilo:`H ${hi}° L ${lo}°`};
+    const data=await nwsFetch(lat,lon);
+    renderWeather(data);
+    try{const pr=chrome.storage.local.set({[WEATHER_KEY]:{t:Date.now(),lat,lon,d:data}});if(pr&&pr.catch)pr.catch(()=>{})}catch{}
+    return;
+  }catch{}
+  try{
+    const data=await omFetch(lat,lon);
     renderWeather(data);
     try{const pr=chrome.storage.local.set({[WEATHER_KEY]:{t:Date.now(),lat,lon,d:data}});if(pr&&pr.catch)pr.catch(()=>{})}catch{}
   }catch{if(!cached)$("weatherDesc").textContent="unavailable"}
+}
+async function nwsFetch(lat,lon){
+  const ac=new AbortController();const to=setTimeout(()=>ac.abort(),8000);
+  try{
+    const p=await(await fetch(`https://api.weather.gov/points/${lat},${lon}`,{signal:ac.signal})).json();
+    const f=await(await fetch(p.properties.forecast,{signal:ac.signal})).json(),ps=f.properties.periods;
+    const c=ps[0],nx=ps[1],t=c.temperature,d=c.isDaytime;
+    let hi=nx&&nx.isDaytime?nx.temperature:t,lo=nx&&!nx.isDaytime?nx.temperature:t;
+    if(!d){lo=t;const td=ps[2]&&ps[2].isDaytime?ps[2]:null;hi=td?td.temperature:nx?nx.temperature:t}
+    return{icon:wi(c.shortForecast,d),temp:`${t}°`,desc:c.shortForecast,hilo:`H ${hi}° L ${lo}°`};
+  }finally{clearTimeout(to)}
+}
+/* WMO weather-code → plain English. Phrased to hit the keywords wi()
+   already matches (clear / partly / overcast / rain / thunder / snow /
+   fog), so the icon mapper needs no changes. */
+function wmoDesc(code){
+  if(code===0)return"Clear sky";
+  if(code===1)return"Mostly clear";
+  if(code===2)return"Partly cloudy";
+  if(code===3)return"Overcast";
+  if(code===45||code===48)return"Fog";
+  if(code===51||code===53||code===55)return"Drizzle";
+  if(code===56||code===57)return"Freezing drizzle";
+  if(code===61||code===63||code===65)return"Rain";
+  if(code===66||code===67)return"Freezing rain";
+  if(code===71||code===73||code===75)return"Snow";
+  if(code===77)return"Snow grains";
+  if(code===80||code===81||code===82)return"Rain showers";
+  if(code===85||code===86)return"Snow showers";
+  if(code===95)return"Thunderstorm";
+  if(code===96||code===99)return"Thunderstorm with hail";
+  return"Partly cloudy";
+}
+async function omFetch(lat,lon){
+  const ac=new AbortController();const to=setTimeout(()=>ac.abort(),8000);
+  try{
+    const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto`;
+    const j=await(await fetch(u,{signal:ac.signal})).json();
+    const t=Math.round(j.current.temperature_2m),d=!!j.current.is_day;
+    const desc=wmoDesc(j.current.weather_code);
+    const hi=Math.round(j.daily.temperature_2m_max[0]),lo=Math.round(j.daily.temperature_2m_min[0]);
+    return{icon:wi(desc,d),temp:`${t}°`,desc,hilo:`H ${hi}° L ${lo}°`};
+  }finally{clearTimeout(to)}
 }
 /* Stroke-style SVG condition icons (feather-like, currentColor) —
    consistent with the rest of the UI; no emoji. */
@@ -452,7 +515,7 @@ function wi(f,d){
 
 /* ── Theme ── */
 function applyTheme(theme){
-  state.theme=theme;const root=document.documentElement;root.classList.remove("has-bg");
+  state.theme=theme;const root=document.documentElement;root.classList.remove("has-bg","has-blur");
   if(theme==="modern"&&!state.bg){swModern();saveState();return}
   if(theme==="custom"){applyCustomTheme();return}
   root.setAttribute("data-theme",theme);saveState();
@@ -557,15 +620,42 @@ function applyBg(data,recompute){
     state.bgDark=dark;
     // Auto-pick the dim only for a NEW image; a user-set value sticks.
     if(recompute||state.bgDim==null)state.bgDim=autoDim(center,dark);
-    const el=$("bgLayer");el.style.setProperty("--user-bg",`url(${data})`);el.classList.add("has-image");
-    bgVars();
-    $("ambient").style.display="none";document.documentElement.setAttribute("data-theme",dark?"darkbg":"lightbg");document.documentElement.classList.add("has-bg");
+    paintBg(data,dark);
     state.bg=data;saveState();
   };img.onerror=clearBg;img.src=data;
 }
+/* Shared paint: bg layer + veil + theme from cached values. Same vars
+   prepaint.js already set on <html>, so boot lands with no visible swap.
+   Kept separate because three call sites (analyze path, fast path,
+   prepaint boot) must agree exactly. */
+function paintBg(data,dark){
+  const el=$("bgLayer");el.style.setProperty("--user-bg",`url(${data})`);el.classList.add("has-image");
+  bgVars();
+  const root=document.documentElement;
+  $("ambient").style.display="none";root.setAttribute("data-theme",dark?"darkbg":"lightbg");root.classList.add("has-bg");
+  root.classList.toggle("has-blur",(state.bgBlur??0)>0);
+}
+/* Fast path: cached veil values exist (persisted via writePrepaintHint),
+   so paint the image NOW instead of waiting for decode + analyze. The
+   forced text theme and dim match the pre-painted frame exactly; when
+   `analyze` finishes it only corrects drift (e.g. after a bgText change
+   saved mid-decode). First call after upgrade has no cached values and
+   falls through to the analyze path. */
+function applyBgFast(data){
+  const dark=state.bgDark,dim=state.bgDim;
+  if(typeof dark!=="boolean"||typeof dim!=="number")return applyBg(data,false);
+  paintBg(data,dark);
+  state.bg=data;saveState();
+  const img=new Image();
+  img.onload=()=>{
+    const{mean,center}=analyze(img);
+    const want=state.bgText==="white"?true:state.bgText==="black"?false:(center<=.55);
+    if(want===state.bgDark)return; // no drift — leave the pre-painted frame alone
+    applyBg(data,false);
+  };img.src=data;
+}
 function clearBg(){
   const el=$("bgLayer");el.classList.remove("has-image","has-blur");el.style.removeProperty("--user-bg");el.style.removeProperty("--overlay-c");el.style.removeProperty("--bg-blur");
-  state.bgDim=null;state.bgDark=undefined;
   $("ambient").style.display="";document.documentElement.classList.remove("has-bg");
   const t=state.theme||"slate";if(t==="custom")applyCustomTheme();else if(t==="modern")swModern();else document.documentElement.setAttribute("data-theme",t);
   delete state.bg;saveState();
@@ -1095,7 +1185,7 @@ function renderSettings(){
     </div>
     <div class="settings-group">
       <label class="settings-label">Weather Location</label>
-      <p class="settings-hint">US coordinates (National Weather Service). Leave blank for the default.</p>
+      <p class="settings-hint">Coordinates work worldwide — NWS in the US, Open-Meteo elsewhere. Leave blank for the default.</p>
       <div style="display:flex;gap:.4rem">
         <input type="text" class="coord-input" id="weatherLatInput" inputmode="decimal" placeholder="Latitude" value="${state.weatherLat??""}">
         <input type="text" class="coord-input" id="weatherLonInput" inputmode="decimal" placeholder="Longitude" value="${state.weatherLon??""}">
@@ -1459,14 +1549,9 @@ document.addEventListener("keydown",e=>{
    ══════════════════════════════════════════════════ */
 (async function boot(){
   await loadState();
-  if(state.glassOpacity)document.documentElement.style.setProperty("--surface-opacity",String(state.glassOpacity));
-  if(!state.aiProvider)state.aiProvider="perplexity";
-
-  if(state.bg)applyBg(state.bg,false);
+  if(state.bg)applyBgFast(state.bg);
   else applyTheme(state.theme||"slate");
   applyTextColor();
-
-  scheduleClock();
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)scheduleClock()});
   fetchWeather();setInterval(fetchWeather,1800000);
   renderLinks();
