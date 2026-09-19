@@ -184,8 +184,6 @@ html.has-bg .ambient{display:none}
 /* Container justify shifts based on drawer state — default centered content */
 .container{justify-content:center;min-height:100dvh}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* ── Hero
    One rhythm for the whole stack: greeting↔time↔date share --hero-gap
@@ -201,7 +199,7 @@ html.has-bg .ambient{display:none}
 
 /* ── Weather ── */
 .weather{margin-top:calc(var(--hero-gap,.85rem) - 1.5rem); /* container gap is 1.5rem; net date↔weather distance = --hero-gap, matching the hero rhythm */
-  display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.42rem 1rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);animation:fadeUp .6s .2s both}
+  display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.42rem 1rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);}
 .weather:hover{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--accent-glow)}
 .weather-icon{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
 .weather-icon svg{width:1.15rem;height:1.15rem;display:block}
@@ -214,7 +212,7 @@ html.has-bg .ambient{display:none}
 /* ══════════════════════════════════════════════════
    SEARCH SECTION — premium animated expand
    ══════════════════════════════════════════════════ */
-.search-section{position:relative;width:100%;display:grid;grid-template-rows:auto 0fr;row-gap:0;animation:fadeUp .7s .25s both;z-index:2;transition:grid-template-rows .55s var(--ease-smooth)}
+.search-section{position:relative;width:100%;display:grid;grid-template-rows:auto 0fr;row-gap:0;z-index:2;transition:grid-template-rows .55s var(--ease-smooth)}
 
 /* ── Search row ── */
 .search-row{position:relative;display:flex;align-items:center;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);
@@ -289,7 +287,6 @@ html.has-bg .ambient{display:none}
 }
 .search-section.open{grid-template-rows:auto 1fr}.search-section.open .search-body{opacity:1}
 
-
 /* ── Layout push for links ── */
 .links{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;width:100%;max-width:500px;margin:0;padding:0;position:relative;z-index:1}
 
@@ -306,7 +303,6 @@ html.has-bg .ambient{display:none}
   transition:transform .5s var(--ease-spring) .05s;
 }
 .search-section.open .search-drawer{transform:translateY(0)}
-
 
 /* ── Drawer tab bar ──
      Tab active state matches drawer-btn / filter-chip active state —
@@ -400,7 +396,6 @@ html.has-bg .ambient{display:none}
 .ai-hint{font-size:.6rem;color:var(--text-muted);text-align:center;margin:0;padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .25s .2s var(--ease-smooth),padding .2s .2s var(--ease-smooth),opacity .2s .22s var(--ease-smooth)}
 .search-section.open .ai-hint.active{max-height:30px;padding:.2rem 0 0;opacity:1}
 
-
 .link-item{display:flex;flex-direction:column;align-items:center;gap:.3rem;text-decoration:none;color:var(--text-dim);font-size:.7rem;padding:.6rem .85rem;border-radius:var(--rs);background:var(--surface);border:1px solid transparent;min-width:68px;transition:background-color .25s var(--ease-smooth),border-color .35s var(--ease-smooth),color .25s var(--ease-smooth),transform .35s var(--ease-spring),box-shadow .35s var(--ease-smooth)}
 .link-item:hover{background:var(--surface-hover-rgba);border-color:var(--border-strong);color:var(--text);transform:translateY(-4px) scale(1.02);box-shadow:var(--shadow-hover),0 0 0 1px var(--accent-glow)}
 .link-item:focus-visible{outline:none;box-shadow:0 0 0 2px var(--accent)}
@@ -411,7 +406,7 @@ html.has-bg .ambient{display:none}
 .link-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68px;font-weight:500}
 
 /* ── Settings toggle */
-.settings-toggle{position:fixed;bottom:24px;right:24px;width:40px;height:40px;z-index:10;border-radius:50%;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));color:var(--text-dim);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify_content:center;transition:background-color .3s var(--ease-smooth),border-color .3s var(--ease-smooth),color .3s var(--ease-smooth),transform .4s var(--ease-spring),box-shadow .3s var(--ease-smooth)}
+.settings-toggle{position:fixed;bottom:24px;right:24px;width:40px;height:40px;z-index:10;border-radius:50%;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));color:var(--text-dim);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background-color .3s var(--ease-smooth),border-color .3s var(--ease-smooth),color .3s var(--ease-smooth),transform .4s var(--ease-spring),box-shadow .3s var(--ease-smooth)}
 .settings-toggle svg{width:18px;height:18px;display:block}
 .settings-toggle:hover{background:var(--surface-hover-rgba);border-color:var(--accent);color:var(--text);transform:scale(1.08);box-shadow:0 0 0 1px var(--accent-glow),0 4px 12px var(--accent-glow)}
 
