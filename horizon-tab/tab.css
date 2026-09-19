@@ -217,7 +217,7 @@ html.has-bg .ambient{display:none}
 .search-row{position:relative;display:flex;align-items:center;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);
   transition:border-radius .5s var(--ease-spring),border-color .35s var(--ease-smooth),box-shadow .5s var(--ease-smooth),background .5s var(--ease-smooth);
   z-index:2}
-.search-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow),0 0 24px var(--accent-glow)}
+.search-row:focus-within{border-color:var(--border-strong)}
 
 /* Mode tag — the chip on the left of the search input that shows the
    active engine / AI provider. Two states:
@@ -325,7 +325,7 @@ html.has-bg .ambient{display:none}
 /* ── Drawer grid ──
      Every category uses the same flex-wrap centering: full rows fill
      the width and any short last row stays CENTERED under the search
-     bar. Web = 8 engines (4 per row), AI = 6 chats, Shop = 14 stores. */
+     bar. Web = 8 engines (4 per row), AI = 6 chats. */
 .drawer-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:.35rem;padding:.15rem 0}
 .drawer-grid .drawer-btn{flex:1 1 125px;max-width:calc(25% - .2625rem)}   /* web: 4 per row */
 /* AI grid — flex-wrap centering so the last short row stays centered at
@@ -578,30 +578,6 @@ html.has-bg .ambient{display:none}
    title explaining why — silently ignoring the click would be worse. */
 .filter-chip.unsupported{opacity:.35;cursor:not-allowed;text-decoration:line-through;text-decoration-thickness:1px}
 .filter-chip.unsupported:hover{color:var(--text-muted);border-color:var(--border);transform:none}
-
-/* Shop grid — 14 retailers, denser tiles than the 8 engines.
-   Flex rather than grid so the final short row CENTERS itself (14 items
-   = 4+4+4+2 on desktop, 3×4+2 on mobile). The AI grid centers its last
-   row with nth-child overrides, which only works for a fixed count at a
-   fixed column width; flex-wrap + justify-content:center does it for
-   any count at any breakpoint, so adding a 15th store needs no CSS. */
-.drawer-grid.shop-grid{
-  display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;
-}
-.drawer-grid.shop-grid .drawer-btn{
-  flex:1 1 108px;
-  max-width:calc(25% - .2625rem);   /* 4 per row (gap .35rem × 3 ÷ 4) */
-}
-@media (max-width:520px){
-  .drawer-grid.shop-grid .drawer-btn{
-    flex-basis:88px;
-    max-width:calc(33.333% - .2334rem);  /* 3 per row */
-  }
-  .drawer-grid .drawer-btn{
-    flex-basis:88px;
-    max-width:calc(33.333% - .2334rem);  /* 3 per row (web too) */
-  }
-}
 
 /* Inline code in settings hints (bang examples) */
 .settings-hint code{

@@ -162,58 +162,24 @@ const MEDIA_URL={
   searxng:{article:"https://searx.be/search?q=%s&categories=news",video:"https://searx.be/search?q=%s&categories=videos",images:"https://searx.be/search?q=%s&categories=images"}
 };
 
-/* ══════════════════════════════════════════════════
-   SHOP — direct product search at major retailers
-   ══════════════════════════════════════════════════
-   %s = URL-encoded query. Patterns verified July 2026; Target's
-   ?searchTerm= and Home Depot's path-based /s/<query> were both
-   confirmed against live URL samples rather than assumed.
-   `mark` + `color` drive a generated lettermark tile — deliberately
-   NOT imitation brand logos, which would be both inaccurate and a
-   trademark problem for a published extension. */
-const SHOP={
-  amazon:{label:"Amazon",url:"https://www.amazon.com/s?k=%s",mark:"a",color:"#FF9900"},
-  ebay:{label:"eBay",url:"https://www.ebay.com/sch/i.html?_nkw=%s",mark:"e",color:"#E53238"},
-  walmart:{label:"Walmart",url:"https://www.walmart.com/search?q=%s",mark:"W",color:"#0071DC"},
-  target:{label:"Target",url:"https://www.target.com/s?searchTerm=%s",mark:"T",color:"#CC0000"},
-  bestbuy:{label:"Best Buy",url:"https://www.bestbuy.com/site/searchpage.jsp?st=%s",mark:"B",color:"#0046BE"},
-  costco:{label:"Costco",url:"https://www.costco.com/CatalogSearch?keyword=%s",mark:"C",color:"#E32224"},
-  homedepot:{label:"Home Depot",url:"https://www.homedepot.com/s/%s",mark:"H",color:"#F96302"},
-  lowes:{label:"Lowe's",url:"https://www.lowes.com/search?searchTerm=%s",mark:"L",color:"#004990"},
-  etsy:{label:"Etsy",url:"https://www.etsy.com/search?q=%s",mark:"E",color:"#F1641E"},
-  newegg:{label:"Newegg",url:"https://www.newegg.com/p/pl?d=%s",mark:"N",color:"#0070CD"},
-  bhphoto:{label:"B&H",url:"https://www.bhphotovideo.com/c/search?q=%s",mark:"B",color:"#0A2240"},
-  ikea:{label:"IKEA",url:"https://www.ikea.com/us/en/search/?q=%s",mark:"I",color:"#0058A3"},
-  wayfair:{label:"Wayfair",url:"https://www.wayfair.com/keyword.php?keyword=%s",mark:"W",color:"#7F187F"},
-  aliexpress:{label:"AliExpress",url:"https://www.aliexpress.com/wholesale?SearchText=%s",mark:"A",color:"#E62E04"}
-};
-const SHOP_ORDER=["amazon","ebay","walmart","target","bestbuy","costco","homedepot","lowes","etsy","newegg","bhphoto","ikea","wayfair","aliexpress"];
 
 /* Generated lettermark tile — consistent, honest, and zero bytes of
    traced brand geometry. */
 function markLogo(mark,color){
   return `<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5.5" fill="${color}"/><text x="12" y="16.6" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${esc(mark)}</text></svg>`;
 }
-function shopLogo(key){
-  const s=SHOP[key];if(!s)return LOGOS.google;
-  return markLogo(s.mark,s.color);
-}
 
 /* ══════════════════════════════════════════════════
    BANGS — "!yt kittens" jumps straight to YouTube
    ══════════════════════════════════════════════════
    A leading !token retargets a single search without changing any of
-   your saved settings. Engine/AI/shop bangs reuse the tables above;
+   your saved settings. Engine/AI bangs reuse the tables above;
    site bangs carry their own %s template. */
 const BANGS={
   g:"engine:google",ddg:"engine:duckduckgo",br:"engine:brave",bing:"engine:bing",
   kagi:"engine:kagi",sp:"engine:startpage",qw:"engine:qwant",sx:"engine:searxng",
   p:"ai:perplexity",gpt:"ai:chatgpt",claude:"ai:claude",grok:"ai:grok",
   gem:"ai:gemini",ds:"ai:deepseek",
-  a:"shop:amazon",amazon:"shop:amazon",ebay:"shop:ebay",wm:"shop:walmart",
-  tgt:"shop:target",bb:"shop:bestbuy",costco:"shop:costco",hd:"shop:homedepot",
-  lowes:"shop:lowes",etsy:"shop:etsy",newegg:"shop:newegg",ikea:"shop:ikea",
-  ali:"shop:aliexpress",wf:"shop:wayfair",bh:"shop:bhphoto",
   img:"vertical:images",news:"vertical:article",vid:"vertical:video",
   yt:"url:https://www.youtube.com/results?search_query=%s",
   w:"url:https://en.wikipedia.org/w/index.php?search=%s",
@@ -239,12 +205,12 @@ const DL=[
 const DS={
   theme:"slate",searchEngine:"google",aiProvider:"perplexity",
   links:DL,showLinks:true,glassOpacity:0.04,searchType:"all",
-  mode:"web",vertical:"all",refiners:[],shopSite:"amazon",resetFilters:false,
+  mode:"web",vertical:"all",refiners:[],resetFilters:false,
   customBg:"#0d0d0d",customAccent:"#7a8a9a",customLight:false,aiFreeOn:false,
   aiSignal:false,aiSensitivity:"med",aiHideAbove:0,
   aiPageDetector:false,weatherLat:null,weatherLon:null,
   bgBlur:0,bgDim:null,bgDark:true,bgText:"auto",aiBridge:false,aiBridgeSubmit:false,
-  hiddenWeb:[],hiddenAI:[],hiddenShop:[],customWeb:[],customAI:[],customShop:[],
+  hiddenWeb:[],hiddenAI:[],customWeb:[],customAI:[],
   textColor:null
 };
 let state={...DS},linkId=100;
@@ -286,8 +252,8 @@ const SYS="hz",BG_KEY="***";
 const KNOWN_KEYS=["theme","searchEngine","aiProvider","links","showLinks","glassOpacity","searchType",
   "customBg","customAccent","customLight","aiFreeOn","aiSignal","aiSensitivity","aiHideAbove",
   "aiPageDetector","weatherLat","weatherLon","bgBlur","bgDim","bgDark","bgText","aiBridge","aiBridgeSubmit",
-  "mode","vertical","refiners","shopSite","resetFilters",
-  "hiddenWeb","hiddenAI","hiddenShop","customWeb","customAI","customShop","textColor"];
+  "mode","vertical","refiners","resetFilters",
+  "hiddenWeb","hiddenAI","customWeb","customAI","textColor"];
 let extraState={};      // keys under "hz" owned by other parts of the extension — preserved verbatim on save
 let lastSavedJSON="";   // diff guard: identical snapshots never hit storage (sync quota: 120 writes/min)
 let lastSavedBG=null;   // the bg data-URL (up to ~500 KB) is only written when it actually changes
@@ -369,14 +335,14 @@ window.addEventListener("pagehide",()=>{if(saveTimer)saveStateNow()});
    older build doesn't land the user on a broken setting. */
 function migrateSearchState(){
   if(!Array.isArray(state.refiners))state.refiners=[];
-  // Shop/AI/web validity (including custom sources) is enforced later by
+  // AI/web validity (including custom sources) is enforced later by
   // ensureActive(), which runs AFTER sanitizeCustom() so it can see both
-  // built-ins and user-added entries. A plain SHOP[] check here would
-  // wipe a custom-store selection on every load.
-  if(state.mode==="web"||state.mode==="ai"||state.mode==="shop"){
+  // built-ins and user-added entries.
+  if(state.mode==="web"||state.mode==="ai"){
     if(!VERTICAL_L[state.vertical])state.vertical="all";
     return;
   }
+  if(state.mode==="shop"){state.mode="web";state.vertical="all";return}
   // Even older profiles carried `searchMode` instead of `searchType`.
   // That fixup used to live in boot() — i.e. AFTER this function — and
   // was dead anyway, since the DS spread always supplies a searchType.
@@ -683,12 +649,11 @@ function bangLabelFor(spec,tok){
   const i=spec.indexOf(":"),kind=spec.slice(0,i),val=spec.slice(i+1);
   if(kind==="engine")return BANG_LABEL[val]||val.charAt(0).toUpperCase()+val.slice(1);
   if(kind==="ai")return AI_L[val]||val;
-  if(kind==="shop")return (SHOP[val]||{}).label||val;
   if(kind==="vertical")return VERTICAL_L[val]||val;
   try{return new URL(val.replace("%s","x")).hostname.replace(/^www\./,"")}catch{return val}
 }
 function bangReference(){
-  const groups={engine:["Search engines",[]],ai:["AI chats",[]],shop:["Stores",[]],vertical:["Filters",[]],url:["Sites",[]]};
+  const groups={engine:["Search engines",[]],ai:["AI chats",[]],vertical:["Filters",[]],url:["Sites",[]]};
   const seen=new Set();
   for(const [tok,spec] of Object.entries(BANGS)){
     const kind=spec.slice(0,spec.indexOf(":"));
@@ -716,7 +681,6 @@ function renderLinks(){
    ══════════════════════════════════════════════════ */
 
 function isAI(){return state.mode==="ai"}
-function isShop(){return state.mode==="shop"}
 /* Keep the legacy key in sync so an older build (or a half-synced
    profile) still lands somewhere sensible. */
 function syncLegacyType(){
@@ -730,15 +694,12 @@ function toggleRefiner(k){
 }
 function currentLabel(){
   if(isAI())return aiLabel(state.aiProvider);
-  if(isShop())return shopLabel(state.shopSite);
   return webLabel(state.searchEngine);
 }
 
 /* ── SVG icon for a key ── */
 function svgIcon(key){
   if(LOGOS[key])return LOGOS[key];
-  if(SHOP[key])return shopLogo(key);
-  const cs=customShopById(key);if(cs)return markLogo(cs.mark,cs.color);
   const ca=customAIById(key);if(ca)return markLogo((ca.label||"?").charAt(0).toUpperCase(),"#3a3f45");
   const cw=customWebById(key);if(cw)return markLogo((cw.label||"?").charAt(0).toUpperCase(),"#3a3f45");
   return LOGOS.google;
@@ -747,18 +708,16 @@ function svgIcon(key){
 /* ══════════════════════════════════════════════════
    SOURCES — visibility + custom additions
    ══════════════════════════════════════════════════
-   Each category (web / ai / shop) = the built-ins above plus any
+   Each category (web / ai) = the built-ins above plus any
    user-added custom entries. Hidden built-ins are listed by key in
-   state.hiddenWeb/AI/Shop; custom entries are objects in
-   state.customWeb/AI/Shop carrying a %s query template. Everything
+   state.hiddenWeb/AI; custom entries are objects in
+   state.customWeb/AI carrying a %s query template. Everything
    downstream reads through the *entries() accessors so the drawer,
    settings and submit path can never disagree about what exists. */
 function webLabel(k){const c=customWebById(k);return c?c.label:(WEB_L[k]||k)}
 function aiLabel(k){const c=customAIById(k);return c?c.label:(AI_L[k]||"AI")}
-function shopLabel(k){const c=customShopById(k);return c?c.label:(SHOP[k]?SHOP[k].label:"Store")}
 function customWebById(id){return (state.customWeb||[]).find(x=>x.id===id)}
 function customAIById(id){return (state.customAI||[]).find(x=>x.id===id)}
-function customShopById(id){return (state.customShop||[]).find(x=>x.id===id)}
 function webEntries(){
   const h=new Set(state.hiddenWeb||[]);
   const b=Object.keys(SE).filter(k=>!h.has(k)).map(k=>({key:k,label:webLabel(k),builtin:true}));
@@ -769,47 +728,28 @@ function aiEntries(){
   const b=AI_ORDER.filter(k=>!h.has(k)).map(k=>({key:k,label:AI_L[k],mode:AI[k].mode,builtin:true}));
   return b.concat((state.customAI||[]).map(x=>({key:x.id,label:x.label,mode:x.mode||"prefill",builtin:false})));
 }
-function shopEntries(){
-  const h=new Set(state.hiddenShop||[]);
-  const b=SHOP_ORDER.filter(k=>!h.has(k)).map(k=>({key:k,label:SHOP[k].label,builtin:true}));
-  return b.concat((state.customShop||[]).map(x=>({key:x.id,label:x.label,builtin:false})));
-}
 /* The settings panel renders the FULL list (hidden included) so a source
    the user turned off stays visible with its toggle "off" and can be
    re-enabled — the drawer is the only place that filters via *entries(). */
 function webAll(){return Object.keys(SE).map(k=>({key:k,label:webLabel(k),builtin:true})).concat((state.customWeb||[]).map(x=>({key:x.id,label:x.label,builtin:false})))}
 function aiAll(){return AI_ORDER.map(k=>({key:k,label:AI_L[k],mode:AI[k].mode,builtin:true})).concat((state.customAI||[]).map(x=>({key:x.id,label:x.label,mode:x.mode||"prefill",builtin:false})))}
-function shopAll(){return SHOP_ORDER.map(k=>({key:k,label:SHOP[k].label,builtin:true})).concat((state.customShop||[]).map(x=>({key:x.id,label:x.label,builtin:false})))}
-/* If the user hides (or removes) the currently-active default, fall back
-   to the first still-visible entry so the mode tag / submit never point
-   at a source that no longer renders. */
-function ensureActive(){
-  const wk=webEntries().map(e=>e.key);
-  if(!wk.includes(state.searchEngine))state.searchEngine=wk[0]||"google";
-  const ak=aiEntries().map(e=>e.key);
-  if(!ak.includes(state.aiProvider))state.aiProvider=ak[0]||"perplexity";
-  const sk=shopEntries().map(e=>e.key);
-  if(!sk.includes(state.shopSite))state.shopSite=sk[0]||"amazon";
-}
+
 /* Reject anything that couldn't have been produced by the UI — dropped
    keys, non-template URLs, junk fields — so a synced profile can't put
    the extension in an inconsistent state. */
 function sanitizeCustom(){
   state.hiddenWeb=(state.hiddenWeb||[]).filter(k=>SE[k]);
   state.hiddenAI=(state.hiddenAI||[]).filter(k=>AI[k]);
-  state.hiddenShop=(state.hiddenShop||[]).filter(k=>SHOP[k]);
   state.customWeb=(state.customWeb||[]).filter(x=>x&&safeTemplate(x.url))
     .map(x=>({id:String(x.id||""),label:String(x.label||"Custom"),url:safeTemplate(x.url)}));
   state.customAI=(state.customAI||[]).filter(x=>x&&safeTemplate(x.url))
     .map(x=>({id:String(x.id||""),label:String(x.label||"Custom"),url:safeTemplate(x.url),mode:x.mode==="search"?"search":"prefill"}));
-  state.customShop=(state.customShop||[]).filter(x=>x&&safeTemplate(x.url))
-    .map(x=>({id:String(x.id||""),label:String(x.label||"Store"),url:safeTemplate(x.url),mark:String(x.mark||"?").charAt(0).toUpperCase(),color:/^#[0-9a-fA-F]{3,8}$/.test(x.color||"")?x.color:"#555"}));
 }
 
 /* ── Tag + drawer open/close ── */
 function updateModeTag(){
   const tag=$("modeTag");
-  const key = isAI() ? state.aiProvider : isShop() ? state.shopSite : state.searchEngine;
+  const key = isAI() ? state.aiProvider : state.searchEngine;
   const icon = svgIcon(key);
   const label = currentLabel();
   // Wrap label in a span so the compact (icon-only) state can fade
@@ -840,7 +780,7 @@ function toggleDrawer(){isDrawerOpen()?closeDrawer():openDrawer()}
 function renderTabs(){
   const m=state.mode||"web";
   const tab=(k,l)=>`<button class="drawer-tab${m===k?" active":""}" data-mode="${k}">${l}</button>`;
-  $("drawerTabbar").innerHTML=tab("web","Web Search")+tab("ai","AI Chat")+tab("shop","Shop");
+  $("drawerTabbar").innerHTML=tab("web","Web Search")+tab("ai","AI Chat");
 }
 
 /* ── Render drawer grid ──
@@ -850,17 +790,14 @@ function renderTabs(){
 function renderDrawer(){
   renderTabs();
   const grid=$("drawerGrid");
-  const ai=isAI(),shop=isShop();
+  const ai=isAI();
   let items;
   if(ai)items=aiEntries().map(e=>[e.key,e.label,"ai",aiBadge(e.key)]);
-  else if(shop)items=shopEntries().map(e=>[e.key,e.label,"shop","shop"]);
   else items=webEntries().map(e=>[e.key,e.label,"web","web"]);
   grid.classList.toggle("ai-grid",ai);
-  grid.classList.toggle("shop-grid",shop);
   grid.innerHTML=items.map(([key,label,kind,tag])=>{
-    const act=(kind==="web"&&!ai&&!shop&&state.searchEngine===key)||
-              (kind==="ai"&&ai&&state.aiProvider===key)||
-              (kind==="shop"&&shop&&state.shopSite===key);
+    const act=(kind==="web"&&!ai&&state.searchEngine===key)||
+              (kind==="ai"&&ai&&state.aiProvider===key);
     return `<button class="drawer-btn${act?" active":""}" data-kind="${kind}" data-key="${key}"><span class="db-svg">${svgIcon(key)}</span><span class="db-name">${esc(label)}</span><span class="db-tag">${tag}</span></button>`;
   }).join("");
 }
@@ -875,12 +812,6 @@ function renderFilterBar(){
     hint.textContent=(mode==="bridge"&&state.aiBridge)
       ? (state.aiBridgeSubmit?"Prompt bridge fills and sends it for you":"Prompt bridge fills the chat box — press Enter to send")
       : AI_MODE_NOTE[mode];
-    hint.classList.add("active");
-    return;
-  }
-  if(isShop()){
-    bar.classList.remove("visible");
-    hint.textContent=`Searches ${shopLabel(state.shopSite)} directly — filters don't apply here`;
     hint.classList.add("active");
     return;
   }
@@ -910,7 +841,6 @@ function renderFilterBar(){
 function updatePlaceholder(){
   const i=$("searchInput");
   if(isAI()){i.placeholder=`Ask ${aiLabel(state.aiProvider)} anything...`;return}
-  if(isShop()){i.placeholder=`Search ${shopLabel(state.shopSite)}...`;return}
   const isCustom=!SE[state.searchEngine];
   const bits=[];
   if(state.aiFreeOn&&AI_FREE_PARAMS[state.searchEngine])bits.push("AI-free");
@@ -984,12 +914,6 @@ function aiURL(q,provider){
   const extra=(p.mode==="bridge"&&state.aiBridge)?"&hz_q="+encodeURIComponent(q):"";
   return p.url+encodeURIComponent(q)+extra;
 }
-function shopURL(q,site){
-  const c=customShopById(site);
-  if(c)return c.url.replace("%s",encodeURIComponent(q));
-  const s=SHOP[site]||SHOP.amazon;
-  return s.url.replace("%s",encodeURIComponent(q));
-}
 
 /* Bangs: a leading !token retargets this ONE search without touching
    any saved setting. "!a usb c cable" → Amazon; "!img otters" → the
@@ -1005,7 +929,6 @@ function resolveBang(raw){
   const i=spec.indexOf(":"),kind=spec.slice(0,i),val=spec.slice(i+1);
   if(kind==="engine")return webSearchURL(q,{engine:val,vertical:state.vertical,refiners:state.refiners||[],aiFree:state.aiFreeOn});
   if(kind==="ai")return aiURL(q,val);
-  if(kind==="shop")return shopURL(q,val);
   if(kind==="vertical")return webSearchURL(q,{engine:state.searchEngine,vertical:val,refiners:state.refiners||[],aiFree:state.aiFreeOn});
   if(kind==="url")return val.replace("%s",encodeURIComponent(q));
   return null;
@@ -1016,7 +939,6 @@ function submitSearch(q){
   const bang=resolveBang(q);
   if(bang){window.location.href=bang;return}
   if(isAI()){window.location.href=aiURL(q,state.aiProvider);return}
-  if(isShop()){window.location.href=shopURL(q,state.shopSite);return}
   const nav=navURL(q);
   if(nav){window.location.href=nav;return}
   window.location.href=webSearchURL(q,{
@@ -1075,7 +997,7 @@ function showMethodology(){
 
 /* ── Sources management UI (settings) ── */
 function srcHidden(kind){
-  return kind==="web"?state.hiddenWeb:kind==="ai"?state.hiddenAI:state.hiddenShop;
+  return kind==="web"?state.hiddenWeb:state.hiddenAI;
 }
 function srcRow(kind,e,activeKey){
   const visible=e.builtin?!srcHidden(kind).includes(e.key):true;
@@ -1091,13 +1013,12 @@ function srcList(kind,entries,activeKey){
   return entries.map(e=>srcRow(kind,e,activeKey)).join("");
 }
 function addFormHTML(kind){
-  const ai=kind==="ai",shop=kind==="shop";
-  const namePh=shop?"Store name":ai?"AI name":"Engine name";
+  const ai=kind==="ai";
+  const namePh=ai?"AI name":"Engine name";
   return `<div class="src-form">
     <input class="src-input src-label" placeholder="${namePh}" maxlength="40" spellcheck="false">
     <input class="src-input src-url" placeholder="https://…search?q=%s" spellcheck="false" autocomplete="off">
     ${ai?'<select class="src-input src-mode"><option value="prefill">Fills the box — press Enter</option><option value="search">Runs the search itself</option></select>':''}
-    ${shop?'<div class="src-form-row"><input class="src-input src-mark" placeholder="Letter" maxlength="1" style="max-width:64px"><input type="color" class="src-input src-color" value="#7a8a9a" style="max-width:64px;padding:2px"></div>':''}
     <div class="src-form-row" style="justify-content:flex-end">
       <button type="button" class="btn-sm src-cancel">Cancel</button>
       <button type="button" class="btn-sm src-save">Add</button>
@@ -1119,7 +1040,7 @@ function openAddForm(kind){
     if(!t){form.querySelector(".src-url").style.borderColor="#ff5a5a";return}
     if(kind==="web")state.customWeb.push({id:"cw"+(linkId++),label,url:t});
     else if(kind==="ai"){const mode=form.querySelector(".src-mode").value;state.customAI.push({id:"ca"+(linkId++),label,url:t,mode});}
-    else{const mark=(form.querySelector(".src-mark").value.trim()||label).charAt(0).toUpperCase();const color=form.querySelector(".src-color").value||"#7a8a9a";state.customShop.push({id:"cs"+(linkId++),label,url:t,mark,color});}
+
     saveState();renderSettings();refreshUI();
   });
 }
@@ -1213,9 +1134,6 @@ function renderSettings(){
         <button class="btn-sm" data-addsrc="ai">+ Add custom AI</button>
       </div>
       <div class="src-block">
-        <div class="src-head">Stores</div>
-        <div class="src-list">${srcList("shop",shopAll(),state.shopSite)}</div>
-        <button class="btn-sm" data-addsrc="shop">+ Add custom store</button>
       </div>
     </div>
     <div class="settings-group">
@@ -1299,15 +1217,13 @@ function renderSettings(){
           ensureActive();saveState();renderSettings();refreshUI();
         }else if(roleEl.dataset.role==="del"){
           if(kind==="web")state.customWeb=(state.customWeb||[]).filter(x=>x.id!==key);
-          else if(kind==="ai")state.customAI=(state.customAI||[]).filter(x=>x.id!==key);
-          else state.customShop=(state.customShop||[]).filter(x=>x.id!==key);
+          else state.customAI=(state.customAI||[]).filter(x=>x.id!==key);
           ensureActive();saveState();renderSettings();refreshUI();
         }
         return;
       }
       if(kind==="web")state.searchEngine=key;
-      else if(kind==="ai")state.aiProvider=key;
-      else state.shopSite=key;
+      else state.aiProvider=key;
       saveState();renderSettings();refreshUI();
     });
   });
@@ -1609,22 +1525,20 @@ document.addEventListener("keydown",e=>{
     const btn=e.target.closest(".drawer-btn");if(!btn)return;
     e.stopPropagation();
     const kind=btn.dataset.kind,key=btn.dataset.key;
-    const modeFor={web:"web",ai:"ai",shop:"shop"}[kind];
+    const modeFor={web:"web",ai:"ai"}[kind];
     if(modeFor!==state.mode){ // stale grid from another mode — full refresh
       state.mode=modeFor;
       if(kind==="web")state.searchEngine=key;
       else if(kind==="ai")state.aiProvider=key;
-      else state.shopSite=key;
       refreshUI();return;
     }
     if(kind==="web")state.searchEngine=key;
     else if(kind==="ai")state.aiProvider=key;
-    else state.shopSite=key;
     $("drawerGrid").querySelector(".drawer-btn.active")?.classList.remove("active");
     btn.classList.add("active");
     syncLegacyType();updateModeTag();updatePlaceholder();
     // Web: chip availability (Recent / AI-Free) is engine-dependent.
-    // AI + Shop: the hint line names the provider/retailer.
+    // AI: the hint line names the provider.
     renderFilterBar();
     saveState();
   });

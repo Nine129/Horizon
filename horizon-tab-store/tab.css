@@ -218,7 +218,7 @@ html.has-bg .ambient{display:none}
 .search-row{position:relative;display:flex;align-items:center;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);
   transition:border-radius .5s var(--ease-spring),border-color .35s var(--ease-smooth),box-shadow .5s var(--ease-smooth),background .5s var(--ease-smooth);
   z-index:2}
-.search-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow),0 0 24px var(--accent-glow)}
+.search-row:focus-within{border-color:var(--border-strong)}
 
 /* Mode tag — the chip on the left of the search input that shows the
    active engine / AI provider. Two states:
