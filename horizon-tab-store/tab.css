@@ -167,11 +167,20 @@ html.has-bg .ambient{display:none}
 .ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .ambient .orb{position:absolute;border-radius:50%;opacity:var(--orb-o,.65);will-change:transform}
 .ambient .orb-a{width:72vmax;height:72vmax;left:-20vmax;top:-24vmax;
-  background:radial-gradient(circle at 35% 35%,var(--orb-a,#7a8a9a) 0%,color-mix(in srgb,var(--orb-a,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-a,#7a8a9a) 30%,transparent) 65%,transparent 85%);}
+  background:radial-gradient(circle at 35% 35%,var(--orb-a,#7a8a9a) 0%,color-mix(in srgb,var(--orb-a,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-a,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-a 38s ease-in-out infinite alternate}
 .ambient .orb-b{width:58vmax;height:58vmax;right:-16vmax;top:-8vmax;
-  background:radial-gradient(circle at 40% 40%,var(--orb-b,#7a8a9a) 0%,color-mix(in srgb,var(--orb-b,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-b,#7a8a9a) 30%,transparent) 65%,transparent 85%);}
+  background:radial-gradient(circle at 40% 40%,var(--orb-b,#7a8a9a) 0%,color-mix(in srgb,var(--orb-b,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-b,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-b 46s ease-in-out infinite alternate}
 .ambient .orb-c{width:76vmax;height:76vmax;left:18vmax;bottom:-30vmax;
-  background:radial-gradient(circle at 45% 45%,var(--orb-c,#7a8a9a) 0%,color-mix(in srgb,var(--orb-c,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-c,#7a8a9a) 30%,transparent) 65%,transparent 85%);}
+  background:radial-gradient(circle at 45% 45%,var(--orb-c,#7a8a9a) 0%,color-mix(in srgb,var(--orb-c,#7a8a9a) 70%,transparent) 45%,color-mix(in srgb,var(--orb-c,#7a8a9a) 30%,transparent) 65%,transparent 85%);
+  animation:drift-c 54s ease-in-out infinite alternate}
+@keyframes drift-a{from{transform:translate3d(0,0,0)}to{transform:translate3d(13vmax,8vmax,0)}}
+@keyframes drift-b{from{transform:translate3d(0,0,0)}to{transform:translate3d(-10vmax,11vmax,0)}}
+@keyframes drift-c{from{transform:translate3d(0,0,0)}to{transform:translate3d(-8vmax,-7vmax,0)}}
+
+/* ── Container */
+.container{--hero-gap:.85rem;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:2rem;width:100%;max-width:640px;gap:1.5rem}
 /* Container justify shifts based on drawer state — default centered content */
 .container{justify-content:center;min-height:100dvh}
 
