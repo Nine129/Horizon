@@ -734,6 +734,15 @@ function aiEntries(){
 function webAll(){return Object.keys(SE).map(k=>({key:k,label:webLabel(k),builtin:true})).concat((state.customWeb||[]).map(x=>({key:x.id,label:x.label,builtin:false})))}
 function aiAll(){return AI_ORDER.map(k=>({key:k,label:AI_L[k],mode:AI[k].mode,builtin:true})).concat((state.customAI||[]).map(x=>({key:x.id,label:x.label,mode:x.mode||"prefill",builtin:false})))}
 
+/* If the user hides (or removes) the currently-active default, fall back
+   to the first still-visible entry so the mode tag / submit never point
+   at a source that no longer renders. */
+function ensureActive(){
+  const wk=webEntries().map(e=>e.key);
+  if(!wk.includes(state.searchEngine))state.searchEngine=wk[0]||"google";
+  const ak=aiEntries().map(e=>e.key);
+  if(!ak.includes(state.aiProvider))state.aiProvider=ak[0]||"perplexity";
+}
 /* Reject anything that couldn't have been produced by the UI — dropped
    keys, non-template URLs, junk fields — so a synced profile can't put
    the extension in an inconsistent state. */
