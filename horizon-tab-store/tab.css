@@ -199,7 +199,7 @@ html.has-bg .ambient{display:none}
 
 /* ── Weather ── */
 .weather{margin-top:calc(var(--hero-gap,.85rem) - 1.5rem); /* container gap is 1.5rem; net date↔weather distance = --hero-gap, matching the hero rhythm */
-  display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.42rem 1rem;backdrop-filter:blur(var(--blur,24px));-webkit-backdrop-filter:blur(var(--blur,24px));transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);}
+  display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:.42rem 1rem;transition:background-color .35s var(--ease-smooth),border-color .35s var(--ease-smooth),color .35s var(--ease-smooth),box-shadow .35s var(--ease-smooth);}
 .weather:hover{border-color:var(--border-strong);box-shadow:0 0 0 1px var(--accent-glow)}
 .weather-icon{display:flex;align-items:center;flex-shrink:0;color:var(--text)}
 .weather-icon svg{width:1.15rem;height:1.15rem;display:block}
